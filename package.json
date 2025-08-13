@@ -19,7 +19,8 @@
     "dev:full": "concurrently \"npm run dev\" \"cd backend && npm run dev\"",
     "dev:all": "concurrently \"npm run dev\" \"cd backend && NODE_ENV=development PORT=3001 node src/server.js\"",
     "build:all": "npm run build:frontend && npm run install:backend",
-    "start:all": "node start.js"
+    "start:all": "node start.js",
+    "postinstall": "npm run install:backend"
   },
   "dependencies": {
     "chart.js": "^4.5.0",
