@@ -19,8 +19,7 @@
     "dev:full": "concurrently \"npm run dev\" \"cd backend && npm run dev\"",
     "dev:all": "concurrently \"npm run dev\" \"cd backend && NODE_ENV=development PORT=3001 node src/server.js\"",
     "build:all": "npm run build:frontend && npm run install:backend",
-    "start:all": "node start.js",
-    "postinstall": "npm run install:backend"
+    "start:all": "node start.js"
   },
   "dependencies": {
     "chart.js": "^4.5.0",
@@ -40,5 +39,8 @@
     "prettier": "3.6.2",
     "vite": "^7.0.6",
     "vite-plugin-vue-devtools": "^8.0.0"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-musl": "^4.0.0"
   }
 }
