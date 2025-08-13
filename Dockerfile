@@ -1,32 +1,25 @@
-# ---- 1) Build frontend (Vite) ----
-FROM node:20.19.0 AS frontend
+# Use Node.js 20 Alpine for smaller image size
+FROM node:20-alpine
+
+# Set working directory
 WORKDIR /app
+
+# Copy package files
 COPY package*.json ./
-# Install dependencies and fix Rollup for Linux
-RUN npm ci --omit=optional || npm install --force
-RUN npm install @rollup/rollup-linux-x64-gnu --no-save --ignore-engines
+COPY backend/package*.json ./backend/
 
-# Build-time envs for Vite - set defaults to ensure map works
-ENV VITE_MAPBOX_ACCESS_TOKEN=pk.eyJ1Ijoid3hsMTIzNzg5IiwiYSI6ImNtZHlid2h1bDAwYmEya3BzMmpvbGFzb2UifQ.PNnx74NZhnHUfa5d1Q_c3w
-ENV VITE_BACKEND_URL=
+# Install dependencies
+RUN npm ci --omit=optional
+RUN cd backend && npm ci --omit=optional
 
+# Copy source code
 COPY . .
+
 # Build frontend
 RUN npm run build
 
-# ---- 2) Install backend deps ----
-FROM node:20.19.0-alpine AS backend_deps
-WORKDIR /app/backend
-COPY backend/package*.json ./
-RUN npm install --omit=dev
-
-# ---- 3) Runtime ----
-FROM node:20.19.0-alpine
-WORKDIR /app
-COPY --from=backend_deps /app/backend/node_modules ./backend/node_modules
-COPY backend ./backend
-COPY --from=frontend /app/dist ./dist
-
-ENV NODE_ENV=production
+# Expose port
 EXPOSE 3001
-CMD ["node", "backend/src/server.js"]
+
+# Start the application
+CMD ["npm", "run", "start:all"]
