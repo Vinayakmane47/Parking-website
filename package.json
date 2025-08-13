@@ -15,7 +15,7 @@
     "install:backend": "cd backend && npm ci",
     "build:frontend": "vite build",
     "start:backend": "cd backend && node src/server.js",
-    "start": "node start.js",
+    "start": "npm run build && npm run start:backend",
     "dev:full": "concurrently \"npm run dev\" \"cd backend && npm run dev\"",
     "dev:all": "concurrently \"npm run dev\" \"cd backend && NODE_ENV=development PORT=3001 node src/server.js\"",
     "build:all": "npm run build:frontend && npm run install:backend",
