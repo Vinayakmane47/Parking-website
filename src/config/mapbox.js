@@ -32,7 +32,7 @@ export const MAPBOX_CONFIG = {
 export const BACKEND_CONFIG = {
   // Auto-detect backend URL - supports environment variables or defaults to local
   baseURL: import.meta.env.VITE_BACKEND_URL || 
-           (import.meta.env.PROD ? window.location.origin : 'http://localhost:3001'),
+           (import.meta.env.PROD ? 'https://park-with-us.up.railway.app' : 'http://localhost:3001'),
   
   // API endpoints
   endpoints: {
@@ -46,7 +46,7 @@ export const BACKEND_CONFIG = {
   environments: {
     local: 'http://localhost:3001',
     staging: 'https://parking-api-staging.railway.app',
-    production: 'https://parking-api.railway.app',
+    production: 'https://park-with-us.up.railway.app',
     custom: import.meta.env.VITE_BACKEND_URL
   }
 }
