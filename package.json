@@ -16,7 +16,11 @@
     "build:frontend": "vite build",
     "start:backend": "cd backend && node src/server.js",
     "start": "node start.js",
-    "dev:full": "concurrently \"npm run dev\" \"cd backend && npm run dev\""
+    "dev:full": "concurrently \"npm run dev\" \"cd backend && npm run dev\"",
+    "dev:all": "concurrently \"npm run dev\" \"cd backend && NODE_ENV=development PORT=3001 node src/server.js\"",
+    "build:all": "npm run build && cd backend && npm ci",
+    "start:all": "npm run build && cd backend && NODE_ENV=production PORT=3001 node src/server.js",
+    "postinstall": "cd backend && npm install"
   },
   "dependencies": {
     "chart.js": "^4.5.0",

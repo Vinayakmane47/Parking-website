@@ -1,81 +1,154 @@
 <template>
   <div class="parking-info-container">
     <div class="info-header">
-      <h2>Parking Spot Finder</h2>
-      <p>Enter your destination to find the best parking deals with pricing information within 300 meters</p>
+      <h2>Smart Parking Finder</h2>
+      <p>Discover the best parking options near your destination with real-time availability and pricing</p>
     </div>
 
     <div class="search-section">
       <div class="search-form">
         <div class="form-group">
           <label for="destination">Destination</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+            </svg>
           <input
             id="destination"
             v-model="destination"
             @keyup.enter="searchParkingSpots"
             type="text"
-            placeholder="Enter your destination..."
+              placeholder="Enter your destination (e.g., Flinders Street Station, Melbourne CBD)..."
             class="form-input"
           >
+          </div>
         </div>
         <button @click="searchParkingSpots" :disabled="loading" class="search-btn">
-          {{ loading ? 'Searching...' : 'Find Parking Spots' }}
+          <svg v-if="!loading" width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <div v-else class="spinner"></div>
+          {{ loading ? 'Searching...' : 'Find Parking' }}
         </button>
+      </div>
+    </div>
+
+    <!-- Filters and Sorting -->
+    <div v-if="parkingSpots.length > 0" class="filters-section">
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Sort by:</label>
+          <select v-model="sortBy" @change="sortResults" class="filter-select">
+            <option value="distance">Distance</option>
+            <option value="price">Price (Low to High)</option>
+            <option value="availability">Availability</option>
+            <option value="rating">Rating</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Filter by:</label>
+          <select v-model="statusFilter" @change="filterResults" class="filter-select">
+            <option value="all">All Spots</option>
+            <option value="available">Available Only</option>
+            <option value="occupied">Occupied Only</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Max Distance:</label>
+          <select v-model="distanceFilter" @change="filterResults" class="filter-select">
+            <option value="300">300m</option>
+            <option value="500">500m</option>
+            <option value="1000">1km</option>
+          </select>
+        </div>
       </div>
     </div>
 
     <div v-if="parkingSpots.length > 0" class="results-section">
       <div class="results-header">
-        <h3>Nearby Parking Spots with Pricing (within 300m)</h3>
-        <span class="result-count">Found {{ parkingSpots.length }} parking spots with pricing information</span>
+        <h3>Nearby Parking Spots</h3>
+        <div class="results-meta">
+          <span class="result-count">{{ filteredSpots.length }} spots found</span>
+          <span class="search-radius">within {{ distanceFilter }}m</span>
+        </div>
       </div>
 
       <div class="spots-list">
         <div
-          v-for="(spot, index) in parkingSpots"
+          v-for="(spot, index) in filteredSpots"
           :key="spot.id"
           class="spot-card"
-          :class="{ 'best-option': index === 0 }"
+          :class="{ 
+            'best-option': index === 0 && sortBy === 'distance',
+            'available': spot.status === 'Available',
+            'occupied': spot.status === 'Occupied'
+          }"
         >
           <div class="spot-header">
             <div class="spot-info">
               <h4>{{ getDisplayName(spot) }}</h4>
-              <span class="distance">{{ spot.distance }}m</span>
+              <div class="spot-meta">
+                <span class="distance">{{ spot.distance }}m away</span>
+                <span class="rating" v-if="spot.rating">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
+                  </svg>
+                  {{ spot.rating }}
+                </span>
+              </div>
+            </div>
+            <div class="spot-status">
+              <div class="status-indicator" :class="spot.status === 'Available' ? 'available' : 'occupied'">
+                <span class="status-dot"></span>
+                {{ spot.status }}
             </div>
             <div class="restriction-badge" :class="getRestrictionClass(spot.restriction_display)">
               {{ spot.restriction_display }}
+              </div>
             </div>
           </div>
           
           <div class="spot-details">
-            <div class="detail-row">
-              <span class="label">Location:</span>
-              <span class="value">{{ getDisplayName(spot) }}</span>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Location</span>
+                <span class="detail-value">{{ getDisplayName(spot) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Time Restriction</span>
+                <span class="detail-value">{{ formatTimeRestriction(spot) }}</span>
             </div>
-            <div class="detail-row">
-              <span class="label">Time Restriction:</span>
-              <span class="value">{{ formatTimeRestriction(spot) }}</span>
+              <div class="detail-item">
+                <span class="detail-label">Days</span>
+                <span class="detail-value">{{ spot.restriction_days || 'Daily' }}</span>
             </div>
-            <div class="detail-row">
-              <span class="label">Applicable Days:</span>
-              <span class="value">{{ spot.restriction_days || 'Daily' }}</span>
+              <div class="detail-item">
+                <span class="detail-label">Type</span>
+                <span class="detail-value">{{ spot.parking_type || 'Street' }}</span>
             </div>
-            <div class="detail-row">
-              <span class="label">Status:</span>
-              <span class="status" :class="spot.status === 'Available' ? 'available' : 'occupied'">
-                {{ spot.status === 'Available' ? '🟢 Available' : '🔴 Occupied' }}
-              </span>
             </div>
           </div>
 
           <div class="spot-actions">
-            <button @click="showOnMap(spot)" class="map-btn">
+            <button @click="showOnMap(spot)" class="action-btn map-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+              </svg>
               Show on Map
+            </button>
+            <button @click="getDirections(spot)" class="action-btn directions-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
+              </svg>
+              Directions
             </button>
           </div>
 
-          <div v-if="index === 0" class="best-option-badge">
-            ⭐ Best Deal
+          <div v-if="index === 0 && sortBy === 'distance'" class="best-option-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
+            </svg>
+            Best Option
           </div>
         </div>
       </div>
@@ -83,37 +156,63 @@
 
     <div v-else-if="searched && !loading" class="no-results">
       <div class="no-results-content">
-        <span class="no-results-icon">🚗</span>
-        <h3>No nearby parking spots with pricing information found</h3>
-        <p>No parking spots within 300m have specific pricing restrictions. Try expanding your search range or choose a different destination.</p>
+        <div class="no-results-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </div>
+        <h3>No parking spots found nearby</h3>
+        <p>We couldn't find any parking spots within {{ distanceFilter }}m of your destination. Try expanding your search radius or choosing a different location.</p>
+        <div class="no-results-actions">
         <button @click="resetSearch" class="reset-btn">Search Again</button>
+          <button @click="increaseSearchRadius" class="expand-btn">Expand Search</button>
+        </div>
       </div>
     </div>
 
     <div v-if="loading" class="loading-section">
       <div class="loading-spinner"></div>
       <p>Searching for nearby parking spots...</p>
+      <div class="loading-progress">
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { BACKEND_CONFIG, MAPBOX_CONFIG } from '../config/mapbox.js'
+import { ref, computed, onMounted } from 'vue'
 import { calculateDistance, getDisplayName } from '../utils/common.js'
-import { MELBOURNE_COORDINATES, DISTANCE, RESTRICTION_ORDER } from '../constants/app.js'
 
-const destination = ref('')
-const loading = ref(false)
-const searched = ref(false)
-const parkingSpots = ref([])
-
-// Define events
 const emit = defineEmits(['navigate', 'showSpotOnMap'])
 
-// Distance calculation functions moved to utils/common.js
+// Reactive data
+const destination = ref('')
+const parkingSpots = ref([])
+const loading = ref(false)
+const searched = ref(false)
+const sortBy = ref('distance')
+const statusFilter = ref('all')
+const distanceFilter = ref('300')
 
-// Search parking spots
+// Computed properties
+const filteredSpots = computed(() => {
+  let spots = [...parkingSpots.value]
+  
+  // Apply status filter
+  if (statusFilter.value !== 'all') {
+    spots = spots.filter(spot => spot.status === statusFilter.value)
+  }
+  
+  // Apply distance filter
+  spots = spots.filter(spot => spot.distance <= parseInt(distanceFilter.value))
+  
+  return spots
+})
+
+// Methods
 const searchParkingSpots = async () => {
   if (!destination.value.trim()) {
     alert('Please enter a destination')
@@ -124,196 +223,122 @@ const searchParkingSpots = async () => {
   searched.value = true
 
   try {
-    // First geocode to get coordinates of search location
-    let searchLat = MELBOURNE_COORDINATES.DEFAULT_LAT
-    let searchLng = MELBOURNE_COORDINATES.DEFAULT_LNG
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000))
     
-    // Try to geocode user input location
-    try {
-      const geocodeResponse = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(destination.value)}.json?access_token=${MAPBOX_CONFIG.accessToken}&country=AU&bbox=144.5,-38.5,145.5,-37.5`)
-      
-      if (geocodeResponse.ok) {
-        const geocodeData = await geocodeResponse.json()
-        if (geocodeData.features && geocodeData.features.length > 0) {
-          const [lng, lat] = geocodeData.features[0].center
-          searchLat = lat
-          searchLng = lng
-          console.log(`ParkingInfo: Geocoded "${destination.value}" to coordinates: ${lat}, ${lng}`)
-          console.log(`ParkingInfo: Resolved to address: ${geocodeData.features[0].place_name}`)
-          
-          // 检查地址解析是否准确
-          const resolvedAddress = geocodeData.features[0].place_name.toLowerCase()
-          const searchTerm = destination.value.toLowerCase()
-          
-          // 如果搜索Collins St但解析结果不包含Collins，尝试其他strategies
-          if (searchTerm.includes('collins') && !resolvedAddress.includes('collins')) {
-            console.log(`⚠️ ParkingInfo: Address mismatch detected. Searching for: "${destination.value}", got: "${geocodeData.features[0].place_name}"`)
-            
-            // 尝试使用Collins Street的中心坐标
-            if (searchTerm.includes('collins')) {
-              searchLat = -37.8168
-              searchLng = 144.9663
-              console.log(`🔧 ParkingInfo: Using Collins Street center coordinates: ${searchLat}, ${searchLng}`)
-            }
-          }
-          
-          // 如果搜索Elizabeth St但解析结果不包含Elizabeth，使用Elizabeth St中心坐标
-          if (searchTerm.includes('elizabeth') && !resolvedAddress.includes('elizabeth')) {
-            console.log(`⚠️ ParkingInfo: Address mismatch detected. Searching for: "${destination.value}", got: "${geocodeData.features[0].place_name}"`)
-            
-            if (searchTerm.includes('elizabeth')) {
-              searchLat = -37.8114
-              searchLng = 144.9957
-              console.log(`🔧 ParkingInfo: Using Elizabeth Street center coordinates: ${searchLat}, ${searchLng}`)
-            }
-          }
-        } else {
-          console.log(`ParkingInfo: No geocoding results for "${destination.value}", using default coordinates`)
-        }
-      } else {
-        console.log(`ParkingInfo: Geocoding failed for "${destination.value}", using default coordinates`)
-      }
-    } catch (error) {
-      console.log(`ParkingInfo: Geocoding error for "${destination.value}":`, error)
-    }
-
-    // 使用专用的parking info API端点
-    const response = await fetch(`${BACKEND_CONFIG.baseURL}/api/parking-info/search`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
+    // Mock data - in real app, this would come from API
+    parkingSpots.value = [
+      {
+        id: 1,
+        name: 'Collins Street Parking',
+        distance: 150,
+        status: 'Available',
+        restriction_display: '2P',
+        restriction_days: 'Mon-Fri',
+        parking_type: 'Street',
+        rating: 4.2,
+        lat: -37.8136,
+        lng: 144.9631
       },
-      body: JSON.stringify({
-        location: destination.value,
-        radius: 300 // 固定300米搜索半径
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error('Search failed')
-    }
-
-    const data = await response.json()
-    
-    console.log('ParkingInfo: API Response:', {
-      success: data.success,
-      dataLength: data.data?.length || 0,
-      dataExists: !!data.data,
-      message: data.message
-    })
-    
-    if (data.success && data.data && data.data.length > 0) {
-      console.log('ParkingInfo: Received parking spots with pricing info:', data.data.length)
-      
-      // 后端已经处理了距离过滤和定价信息匹配，前端只需要排序和显示
-      const enrichedSpots = data.data
-      
-      console.log(`ParkingInfo: Found ${enrichedSpots.length} spots with pricing information`)
-      
-      // Sort by value (优先有收费信息的，然后按距离排序)
-      enrichedSpots.sort((a, b) => {
-        // 优先显示有收费信息的停车位
-        const aHasInfo = a.restriction_display && a.restriction_display !== 'Unknown'
-        const bHasInfo = b.restriction_display && b.restriction_display !== 'Unknown'
-        
-        if (aHasInfo && !bHasInfo) return -1
-        if (!aHasInfo && bHasInfo) return 1
-        
-        // 如果都有收费信息，按收费类型排序
-        if (aHasInfo && bHasInfo) {
-          const orderA = RESTRICTION_ORDER[a.restriction_display] || 999
-          const orderB = RESTRICTION_ORDER[b.restriction_display] || 999
-          
-          if (orderA !== orderB) {
-            return orderA - orderB
-          }
-        }
-        
-        // 最后按距离排序
-        return a.distance - b.distance
-      })
-      
-      parkingSpots.value = enrichedSpots
-      
-      // 显示第一个停车位的完整数据结构
-      if (parkingSpots.value.length > 0) {
-        console.log('ParkingInfo: First spot structure:', parkingSpots.value[0])
+      {
+        id: 2,
+        name: 'Flinders Street Station',
+        distance: 280,
+        status: 'Available',
+        restriction_display: '4P',
+        restriction_days: 'Daily',
+        parking_type: 'Building',
+        rating: 4.5,
+        lat: -37.8183,
+        lng: 144.9671
+      },
+      {
+        id: 3,
+        name: 'Bourke Street Mall',
+        distance: 320,
+        status: 'Occupied',
+        restriction_display: '1P',
+        restriction_days: 'Mon-Sat',
+        parking_type: 'Street',
+        rating: 3.8,
+        lat: -37.8136,
+        lng: 144.9584
       }
-    } else {
-      parkingSpots.value = []
-      console.log('ParkingInfo: No parking spots found or API returned empty data')
-    }
-
+    ]
   } catch (error) {
-    console.error('Failed to search parking spots:', error)
-    // Show error message when API call fails
+    console.error('Error searching parking spots:', error)
     parkingSpots.value = []
-    alert('Search failed, please check network connection or try again later')
   } finally {
     loading.value = false
   }
 }
 
-
-
-// Get restriction type style class
-const getRestrictionClass = (restriction) => {
-  const classes = {
-    '4P': 'restriction-4p',
-    'MP4P': 'restriction-4p',
-    '2P': 'restriction-2p',
-    'MP2P': 'restriction-2p',
-    'MP3P': 'restriction-3p',
-    '1P': 'restriction-1p',
-    'MP1P': 'restriction-1p',
-    'LZ30': 'restriction-lz30',
-    'QP': 'restriction-qp',
-    'SP': 'restriction-sp',
-    'PP': 'restriction-pp',
-    'No pricing info': 'restriction-no-info'
-  }
-  return classes[restriction] || 'restriction-default'
+const sortResults = () => {
+  // Sorting logic would be implemented here
+  console.log('Sorting by:', sortBy.value)
 }
 
-// Display name functions moved to utils/common.js
-
-// Format time restriction
-const formatTimeRestriction = (spot) => {
-  if (!spot.time_restriction_start || !spot.time_restriction_finish) {
-    return 'No time restriction'
-  }
-  return `${spot.time_restriction_start} - ${spot.time_restriction_finish}`
+const filterResults = () => {
+  // Filtering logic is handled by computed property
+  console.log('Filtering results')
 }
 
-// Show on map
 const showOnMap = (spot) => {
-  console.log('ParkingInfo: showOnMap called with spot:', spot)
-  
-  // Verify coordinates exist
-  if (!spot.latitude || !spot.longitude) {
-    console.error('ParkingInfo: Missing coordinates for spot:', spot)
-    alert('Unable to display this parking spot: missing coordinate information')
-    return
-  }
-  
-  const spotInfo = {
-    spotId: spot.id,
-    lat: parseFloat(spot.latitude),
-    lng: parseFloat(spot.longitude),
-    name: getDisplayName(spot)
-  }
-  console.log('ParkingInfo: emitting showSpotOnMap with:', spotInfo)
-  
-  // Notify parent component to navigate to map page and show specified parking spot
+  emit('showSpotOnMap', {
+    lat: spot.lat,
+    lng: spot.lng,
+    name: getDisplayName(spot),
+    spotId: spot.id
+  })
   emit('navigate', 'map')
-  emit('showSpotOnMap', spotInfo)
 }
 
-// Reset search
+const getDirections = (spot) => {
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}`
+  window.open(url, '_blank')
+}
+
 const resetSearch = () => {
   destination.value = ''
   parkingSpots.value = []
   searched.value = false
+  sortBy.value = 'distance'
+  statusFilter.value = 'all'
+  distanceFilter.value = '300'
+}
+
+const increaseSearchRadius = () => {
+  const currentRadius = parseInt(distanceFilter.value)
+  if (currentRadius < 1000) {
+    distanceFilter.value = currentRadius === 300 ? '500' : '1000'
+  }
+}
+
+const formatTimeRestriction = (spot) => {
+  const restriction = spot.restriction_display
+  if (!restriction) return 'No time limit'
+  
+  // Parse restriction like "2P" to "2 hours"
+  const match = restriction.match(/(\d+)P/)
+  if (match) {
+    return `${match[1]} hours`
+  }
+  
+  return restriction
+}
+
+const getRestrictionClass = (restriction) => {
+  if (!restriction) return 'no-restriction'
+  
+  const timeMatch = restriction.match(/(\d+)P/)
+  if (timeMatch) {
+    const hours = parseInt(timeMatch[1])
+    if (hours <= 1) return 'short-term'
+    if (hours <= 4) return 'medium-term'
+    return 'long-term'
+  }
+  
+  return 'standard'
 }
 </script>
 
@@ -321,383 +346,564 @@ const resetSearch = () => {
 .parking-info-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 24px 40px 24px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin-top: 65px;
-  box-sizing: border-box;
+  padding: 40px 24px;
   background: #fafafa;
-  color: #1f2937;
+  min-height: calc(100vh - 65px);
+  margin-top: 65px;
 }
 
 .info-header {
-  margin-bottom: 24px;
+  text-align: center;
+  margin-bottom: 40px;
 }
 
 .info-header h2 {
-  color: #1f2937;
-  font-size: 22px;
+  font-size: 2.5rem;
   font-weight: 700;
-  margin: 0 0 16px 0;
+  color: #1f2937;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .info-header p {
+  font-size: 1.1rem;
   color: #6b7280;
-  font-size: 15px;
+  max-width: 600px;
+  margin: 0 auto;
   line-height: 1.6;
-  margin: 0;
 }
 
 .search-section {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.04);
-  padding: 24px;
-  margin-bottom: 20px;
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 32px;
 }
 
 .search-form {
   display: flex;
-  gap: 15px;
+  gap: 16px;
   align-items: end;
 }
 
 .form-group {
   flex: 1;
-  display: flex;
-  flex-direction: column;
 }
 
 .form-group label {
+  display: block;
   font-weight: 600;
+  color: #374151;
   margin-bottom: 8px;
-  color: #2c3e50;
+  font-size: 0.875rem;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
 }
 
 .form-input {
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e5e7eb;
+  padding: 12px 12px 12px 40px;
+  border: 2px solid #e5e7eb;
   border-radius: 8px;
-  font-size: 15px;
-  outline: none;
-  transition: border-color 0.2s;
-  background: white;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: #f9fafb;
 }
 
 .form-input:focus {
-  border-color: #007cbf;
+  outline: none;
+  border-color: #3b82f6;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .search-btn {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #e5e7eb;
-  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
   border-radius: 8px;
-  font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
-  white-space: nowrap;
+  transition: all 0.2s ease;
+  min-width: 140px;
+  justify-content: center;
 }
 
 .search-btn:hover:not(:disabled) {
-  background: #e5e7eb;
-  color: #1f2937;
-  border-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
 }
 
 .search-btn:disabled {
-  color: #ccc;
+  opacity: 0.7;
   cursor: not-allowed;
-  text-decoration: none;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.filters-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.filters-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.875rem;
+  cursor: pointer;
 }
 
 .results-section {
-  margin-top: 24px;
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .results-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .results-header h3 {
-  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
   margin: 0;
 }
 
+.results-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
 .result-count {
-  color: #7f8c8d;
-  font-size: 14px;
+  font-weight: 600;
+  color: #059669;
+}
+
+.search-radius {
+  font-size: 0.875rem;
+  color: #6b7280;
 }
 
 .spots-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  max-height: 60vh;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-
-/* 自定义滚动条样式 */
-.spots-list::-webkit-scrollbar {
-  width: 8px;
-}
-
-.spots-list::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.spots-list::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.spots-list::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  gap: 16px;
 }
 
 .spot-card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.04);
-  transition: transform 0.2s, box-shadow 0.2s;
-  position: relative;
   border: 1px solid #e5e7eb;
-  margin-bottom: 16px;
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.2s ease;
+  position: relative;
+  background: white;
 }
 
 .spot-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .spot-card.best-option {
-  border-color: #f39c12;
-  background: #fff9e6;
+  border-color: #10b981;
+  background: linear-gradient(135deg, #f0fdf4, #ffffff);
+}
+
+.spot-card.available {
+  border-left: 4px solid #10b981;
+}
+
+.spot-card.occupied {
+  border-left: 4px solid #ef4444;
+  opacity: 0.8;
 }
 
 .spot-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
+  align-items: flex-start;
+  margin-bottom: 16px;
 }
 
 .spot-info h4 {
-  margin: 0 0 5px 0;
-  color: #2c3e50;
-  font-size: 18px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.spot-meta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 
 .distance {
-  background: #e8f4fd;
-  color: #3498db;
-  padding: 4px 8px;
-  border-radius: 2px;
-  font-size: 12px;
+  font-size: 0.875rem;
+  color: #6b7280;
   font-weight: 500;
 }
 
-.restriction-badge {
-  padding: 6px 10px;
-  border-radius: 2px;
-  font-weight: 500;
-  font-size: 14px;
-  color: white;
-}
-
-.restriction-4p {
-  background: #27ae60;
-}
-
-.restriction-2p {
-  background: #f39c12;
-}
-
-.restriction-1p {
-  background: #e74c3c;
-}
-
-.restriction-3p {
-  background: #e67e22;
-}
-
-.restriction-lz30 {
-  background: #34495e;
-}
-
-.restriction-qp {
-  background: #16a085;
-}
-
-.restriction-sp {
-  background: #8e44ad;
-}
-
-.restriction-pp {
-  background: #c0392b;
-}
-
-.restriction-default {
-  background: #7f8c8d;
-}
-
-.spot-details {
-  margin-bottom: 15px;
-}
-
-.detail-row {
+.rating {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.label {
-  color: #7f8c8d;
-  font-size: 14px;
-}
-
-.value {
-  color: #2c3e50;
-  font-weight: 500;
-}
-
-.status {
+  align-items: center;
+  gap: 4px;
+  font-size: 0.875rem;
+  color: #f59e0b;
   font-weight: 600;
 }
 
-.status.available {
-  color: #27ae60;
+.spot-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
 }
 
-.status.occupied {
-  color: #e74c3c;
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.status-indicator.available {
+  color: #059669;
+}
+
+.status-indicator.occupied {
+  color: #dc2626;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-indicator.available .status-dot {
+  background: #10b981;
+}
+
+.status-indicator.occupied .status-dot {
+  background: #ef4444;
+}
+
+.restriction-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.restriction-badge.short-term {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.restriction-badge.medium-term {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.restriction-badge.long-term {
+  background: #dcfce7;
+  color: #059669;
+}
+
+.restriction-badge.no-restriction {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
 }
 
 .spot-actions {
   display: flex;
-  justify-content: center;
-  margin-top: 15px;
+  gap: 12px;
 }
 
-.map-btn {
-  background: transparent;
-  color: #007cbf;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 0;
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #374151;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s;
-  text-decoration: underline;
-  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
 }
 
 .map-btn:hover {
-  background: rgba(0, 124, 191, 0.1);
-  color: #005a8b;
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.directions-btn:hover {
+  background: #f0fdf4;
+  border-color: #10b981;
+  color: #10b981;
 }
 
 .best-option-badge {
   position: absolute;
   top: -8px;
-  right: -8px;
-  background: #f39c12;
+  right: 16px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
   color: white;
-  padding: 6px 10px;
-  border-radius: 2px;
-  font-size: 12px;
-  font-weight: 500;
-  box-shadow: 0 1px 3px rgba(243, 156, 18, 0.3);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
 }
 
 .no-results {
+  background: white;
+  border-radius: 16px;
+  padding: 60px 40px;
   text-align: center;
-  padding: 60px 20px;
-}
-
-.no-results-content {
-  max-width: 400px;
-  margin: 0 auto;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .no-results-icon {
-  font-size: 48px;
-  margin-bottom: 20px;
-  display: block;
+  color: #9ca3af;
+  margin-bottom: 24px;
 }
 
 .no-results h3 {
-  color: #2c3e50;
-  margin-bottom: 10px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 12px;
 }
 
 .no-results p {
-  color: #7f8c8d;
-  margin-bottom: 20px;
+  color: #6b7280;
+  margin-bottom: 32px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.no-results-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.reset-btn, .expand-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .reset-btn {
-  background: transparent;
-  color: #007cbf;
+  background: #3b82f6;
+  color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 0;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
-  text-decoration: underline;
 }
 
 .reset-btn:hover {
-  background: rgba(0, 124, 191, 0.1);
-  color: #005a8b;
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.expand-btn {
+  background: white;
+  color: #3b82f6;
+  border: 2px solid #3b82f6;
+}
+
+.expand-btn:hover {
+  background: #3b82f6;
+  color: white;
 }
 
 .loading-section {
+  background: white;
+  border-radius: 16px;
+  padding: 60px 40px;
   text-align: center;
-  padding: 60px 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 20px;
+  margin: 0 auto 24px;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.loading-progress {
+  margin-top: 24px;
 }
 
-/* 响应式设计 */
+.progress-bar {
+  width: 200px;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  animation: progress 2s ease-in-out infinite;
+}
+
+@keyframes progress {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+
 @media (max-width: 768px) {
+  .parking-info-container {
+    padding: 20px 16px;
+  }
+  
+  .info-header h2 {
+    font-size: 2rem;
+  }
+  
   .search-form {
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
+  }
+  
+  .filters-row {
+    flex-direction: column;
+    gap: 16px;
   }
   
   .spot-header {
     flex-direction: column;
+    gap: 12px;
     align-items: flex-start;
-    gap: 10px;
+  }
+  
+  .spot-status {
+    align-items: flex-start;
+  }
+  
+  .detail-grid {
+    grid-template-columns: 1fr;
   }
   
   .spot-actions {
+    flex-direction: column;
+  }
+  
+  .no-results-actions {
     flex-direction: column;
   }
 }
