@@ -20,6 +20,7 @@
     "dev:all": "concurrently \"npm run dev\" \"cd backend && NODE_ENV=development PORT=3001 node src/server.js\"",
     "build:all": "npm run install:backend && npm run build:frontend",
     "start:production": "cd backend && NODE_ENV=production node src/server.js",
+    "railway:start": "echo 'Starting Railway deployment...' && npm run build:all && echo 'Build completed, starting server...' && npm run start:production",
     "postinstall": "npm run install:backend"
   },
   "dependencies": {
