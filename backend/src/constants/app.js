@@ -28,7 +28,7 @@ export const TIMEOUTS = {
 
 // API Configuration
 export const API_LIMITS = {
-  DEFAULT_LIMIT: 10000, // 增加到10000，确保返回所有停车位
+  DEFAULT_LIMIT: 100, // Reduced to 100 to avoid API limits
   DEFAULT_OFFSET: 0,
   SEARCH_LIMIT: 50,
   RATE_LIMIT_REQUESTS: 1000,

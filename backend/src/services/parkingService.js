@@ -11,7 +11,7 @@ let memoryCache = {
 // Melbourne API configuration
 const MELBOURNE_APIS = {
   endpoints: [
-    'https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/on-street-parking-bay-sensors/records?limit=10000&timezone=Australia%2FMelbourne&select=*',
+    'https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/on-street-parking-bay-sensors/records?limit=100&timezone=Australia%2FMelbourne&select=*',
     'https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/on-street-parking-bay-sensors/exports/json?timezone=Australia%2FMelbourne',
     'https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/on-street-parking-bay-sensors/exports/geojson?timezone=Australia%2FMelbourne'
   ]
