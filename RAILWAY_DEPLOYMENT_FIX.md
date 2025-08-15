@@ -22,6 +22,14 @@
 - Updated `deploy/railway.json` to use `start:production` command
 - Added proper environment variable handling
 
+### 4. ✅ API Routing Issue (CRITICAL FIX)
+**Problem**: Static file serving was interfering with API routes, causing `/api/parking` to return HTML instead of JSON
+**Solution**:
+- Fixed `backend/src/server.js` to properly separate static file serving from API routes
+- Added `index: false` to static file serving to prevent serving index.html for all routes
+- Added explicit route for root path to serve index.html
+- API routes now work correctly in production
+
 ## Railway Environment Variables
 
 Add these environment variables in your Railway project settings:
@@ -37,7 +45,7 @@ FRONTEND_ORIGINS=https://your-app-name.railway.app,https://*.railway.app,https:/
 ### 1. Push Changes to GitHub
 ```bash
 git add .
-git commit -m "Fix Railway deployment issues"
+git commit -m "Fix Railway deployment issues - API routing and database handling"
 git push origin main
 ```
 
@@ -82,8 +90,9 @@ After successful deployment:
 - ✅ Health endpoint responds with status "OK"
 - ✅ Frontend loads without errors
 - ✅ Parking map displays correctly
-- ✅ API endpoints return data (with fallback data if no database)
+- ✅ API endpoints return JSON data (with fallback data if no database)
 - ✅ No CORS errors in browser console
+- ✅ `/api/parking` returns valid JSON instead of HTML
 
 ## Database Setup (Optional)
 
@@ -98,3 +107,19 @@ If you're still experiencing issues:
 1. Check Railway logs for specific error messages
 2. Verify all environment variables are set correctly
 3. Ensure your Railway project has sufficient resources allocated
+
+## Key Changes Made
+
+### Backend Server Configuration (`backend/src/server.js`)
+- Fixed static file serving to not interfere with API routes
+- Added proper route separation between static files and API endpoints
+- Improved error handling for missing database connections
+
+### Database Configuration (`backend/src/utils/db.js`)
+- Added graceful handling of missing `DATABASE_URL`
+- Services now work with fallback data when database is unavailable
+
+### Build Configuration
+- Updated Railway deployment configuration
+- Added production-specific start command
+- Improved build process reliability

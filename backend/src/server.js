@@ -76,9 +76,11 @@ const simpleRateLimit = (req, res, next) => {
 };
 app.use('/api', simpleRateLimit);
 
-/* ---------- Serve frontend build (MUST come before API) ---------- */
+/* ---------- Serve frontend build (exclude API routes) ---------- */
 const distPath = path.resolve(__dirname, '../../dist');
-app.use(express.static(distPath));
+app.use(express.static(distPath, {
+  index: false // Don't serve index.html for all routes
+}));
 
 /* ---------- Health ---------- */
 app.get('/health', (_req, res) => {
@@ -155,7 +157,11 @@ app.use('/api/*', (req, res) => {
   });
 });
 
-/* ---------- SPA fallback (MUST be last) ---------- */
+/* ---------- Serve index.html for root and SPA fallback (MUST be last) ---------- */
+app.get('/', (_req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
+});
+
 app.get('*', (_req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
