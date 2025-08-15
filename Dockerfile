@@ -19,7 +19,7 @@ COPY . .
 RUN npm run build
 
 # Expose port
-EXPOSE 3001
+EXPOSE 5173
 
 # Start the application
 CMD ["npm", "run", "railway:start"]
