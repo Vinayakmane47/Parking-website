@@ -89,6 +89,27 @@
             </div>
             <div class="card-glow"></div>
           </div>
+
+          <div class="nav-card tertiary" @click="navigateToInfrastructure">
+            <div class="card-content">
+              <div class="card-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                  <polyline points="9,22 9,12 15,12 15,22"/>
+                </svg>
+              </div>
+              <div class="card-text">
+                <h3>Infrastructure</h3>
+                <p>Parking bay details & restrictions</p>
+              </div>
+              <div class="card-arrow">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </div>
+            </div>
+            <div class="card-glow"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -164,8 +185,8 @@
       <div class="features-header">
         <h2>Smart Features</h2>
         <p>Powered by real-time data and AI insights</p>
-      </div>
-      
+        </div>
+
       <div class="features-showcase">
         <div class="feature-item">
           <div class="feature-badge">
@@ -237,6 +258,10 @@ const navigateToMap = () => {
 
 const navigateToDashboard = () => {
   emit('navigate', 'dashboard')
+}
+
+const navigateToInfrastructure = () => {
+  emit('navigate', 'infrastructure')
 }
 
 // Simulate real-time updates
@@ -477,6 +502,15 @@ onMounted(() => {
 
 .nav-card.secondary:hover {
   box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+}
+
+.nav-card.tertiary {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.nav-card.tertiary:hover {
+  box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
 }
 
 .card-content {

@@ -225,7 +225,7 @@ const searchParkingSpots = async () => {
   try {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000))
-    
+          
     // Mock data - in real app, this would come from API
     parkingSpots.value = [
       {

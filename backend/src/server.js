@@ -15,6 +15,7 @@ import parkingRoutes from './routes/parking.js';
 import parkingInfoRoutes from './routes/parkingInfo.js';
 import dashboardRoutes from './routes/dashboard.js';
 import chartDataRoutes from './routes/chartData.js';
+import parkingBaysRoutes from './routes/parkingBays.js';
 
 // Services
 import { startParkingDataSync } from './services/parkingSync.js';
@@ -93,7 +94,7 @@ app.get('/health', (_req, res) => {
 /* ---------- API info (not at "/") ---------- */
 app.get('/api', (_req, res) => {
   res.json({
-    message: '🅿️ Melbourne Parking Backend API',
+    message: 'Melbourne Parking Backend API',
     version: '1.0.0',
     endpoints: {
       health: '/health',
@@ -101,6 +102,7 @@ app.get('/api', (_req, res) => {
       parkingInfo: '/api/parking-info',
       dashboard: '/api/dashboard',
       chartData: '/api/chart-data',
+      parkingBays: '/api/parking-bays',
     },
     timestamp: new Date().toISOString(),
   });
@@ -128,7 +130,7 @@ const corsOptions = {
     
     if (isAllowed) return cb(null, true);
     
-    console.log(`⚠️ CORS blocked for origin: ${origin}`);
+    console.log(`CORS blocked for origin: ${origin}`);
     return cb(new Error(`CORS blocked for origin: ${origin}`));
   },
   credentials: true,
@@ -140,6 +142,7 @@ app.use('/api/parking', parkingRoutes);
 app.use('/api/parking-info', parkingInfoRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/chart-data', chartDataRoutes);
+app.use('/api/parking-bays', parkingBaysRoutes);
 
 /* ---------- 404 for API only ---------- */
 app.use('/api/*', (req, res) => {
@@ -160,7 +163,7 @@ app.get('*', (_req, res) => {
 /* ---------- Global error handler ---------- */
 /* eslint-disable-next-line no-unused-vars */
 app.use((err, _req, res, _next) => {
-  console.error('❌ API error:', err);
+  console.error('API error:', err);
   const status = err.status || err.statusCode || 500;
   res.status(status).json({
     success: false,
@@ -173,25 +176,22 @@ app.use((err, _req, res, _next) => {
 /* ---------- Start ---------- */
 async function startServer() {
   try {
-    console.log('🚀 Starting Melbourne Parking Backend...');
-    console.log('⏰ Starting data sync service...');
+    console.log('Starting Melbourne Parking Backend...');
+    console.log('Starting data sync service...');
     startParkingDataSync();
 
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`
-┌─────────────────────────────────────────┐
-│  🅿️  Melbourne Parking Backend API      │
-├─────────────────────────────────────────┤
-│  🌐 URL: http://0.0.0.0:${PORT}
-│  🏥 Health: /health
-│  🅿️ API:    /api/parking
-│  📦 Static:  ${distPath}
-│  ⏰ Env:     ${process.env.NODE_ENV || 'development'}
-└─────────────────────────────────────────┘
+Melbourne Parking Backend API
+URL: http://0.0.0.0:${PORT}
+Health: /health
+API: /api/parking
+Static: ${distPath}
+Env: ${process.env.NODE_ENV || 'development'}
       `);
     });
   } catch (e) {
-    console.error('❌ Server startup failed:', e);
+    console.error('Server startup failed:', e);
     process.exit(1);
   }
 }
@@ -199,16 +199,16 @@ async function startServer() {
 /* ---------- Signals ---------- */
 for (const sig of ['SIGTERM', 'SIGINT']) {
   process.on(sig, () => {
-    console.log(`👋 Received ${sig}, shutting down...`);
+    console.log(`Received ${sig}, shutting down...`);
     process.exit(0);
   });
 }
 process.on('uncaughtException', (e) => {
-  console.error('🚨 Uncaught exception:', e);
+  console.error('Uncaught exception:', e);
   process.exit(1);
 });
 process.on('unhandledRejection', (r) => {
-  console.error('🚨 Unhandled rejection:', r);
+  console.error('Unhandled rejection:', r);
   process.exit(1);
 });
 

@@ -402,6 +402,55 @@ export class ParkingService {
       spot.bay_id === id
     );
   }
+
+  // NEW: Fetch real-time parking sensor data from Melbourne API
+  async getRealTimeSensorData() {
+    try {
+      console.log('Fetching real-time parking sensor data from Melbourne API...');
+      
+      const response = await fetch('https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/on-street-parking-bay-sensors/records?limit=10000&timezone=Australia%2FMelbourne', {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Melbourne-Parking-App/1.0',
+          'Accept': 'application/json'
+        },
+        timeout: 30000
+      });
+
+      if (!response.ok) {
+        throw new Error(`Melbourne API returned status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`Retrieved ${data.results?.length || 0} real-time sensor records`);
+
+      return this.processSensorData(data.results || []);
+      
+    } catch (error) {
+      console.error('Failed to fetch real-time sensor data:', error);
+      throw error;
+    }
+  }
+
+  // Process real-time sensor data
+  processSensorData(sensorData) {
+    return sensorData.map(sensor => ({
+      id: sensor.bay_id || sensor.sensor_id,
+      sensor_id: sensor.sensor_id,
+      bay_id: sensor.bay_id,
+      status: sensor.status || 'unknown',
+      latitude: parseFloat(sensor.latitude),
+      longitude: parseFloat(sensor.longitude),
+      street_name: sensor.street_name,
+      zone_number: sensor.zone_number,
+      area: sensor.area,
+      restrictions: sensor.restrictions,
+      cost_info: sensor.cost_info,
+      last_updated: sensor.last_updated || new Date().toISOString(),
+      occupancy_duration: sensor.occupancy_duration || 0,
+      payment_status: sensor.payment_status || 'unknown'
+    }));
+  }
 }
 
 // Create service instance

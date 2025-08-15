@@ -18,6 +18,13 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true, // If port is occupied, throw error instead of automatically switching ports
-    host: true
+    host: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   }
 })

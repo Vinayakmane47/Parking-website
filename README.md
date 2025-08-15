@@ -4,6 +4,15 @@ An interactive web application displaying real-time parking information across M
 
 **🚀 Now supports single-service deployment on Railway and other cloud platforms!**
 
+## 📚 Documentation
+
+For detailed documentation, see the [docs](./docs/) folder:
+- [📖 Complete Documentation](./docs/README.md)
+- [🚀 Quick Start Guide](./docs/README.md#quick-start)
+- [🔧 Development Guide](./docs/README.md#development-guide)
+- [📊 Data Integration Plan](./docs/MELBOURNE_DATA_INTEGRATION_PLAN.md)
+- [🚀 Deployment Guide](./docs/DEPLOYMENT.md)
+
 ## ✨ Features
 
 🗺️ **Interactive MapBox-powered map** with smooth navigation and controls

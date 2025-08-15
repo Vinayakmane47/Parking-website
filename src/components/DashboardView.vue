@@ -1,10 +1,54 @@
 <template>
   <div class="mm-dashboard">
+    <!-- Top Section: Navigation Header -->
+    <div class="top-header">
+      <div class="nav-container">
+        <div class="nav-buttons">
+          <button @click="navigateToHome" class="nav-btn home" title="Home">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9,22 9,12 15,12 15,22"/>
+            </svg>
+            Home
+          </button>
+          <button class="nav-btn active" title="Data Insights">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 20V10"/>
+              <path d="M12 20V4"/>
+              <path d="M6 20v-6"/>
+            </svg>
+            Data Insights
+          </button>
+          <button @click="navigateToMap" class="nav-btn map" title="Map">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+              <circle cx="12" cy="9" r="2.5"/>
+            </svg>
+            Map
+          </button>
+          <button @click="navigateToInfrastructure" class="nav-btn infrastructure" title="Infrastructure">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3v18h18"/>
+              <path d="M9 9h6v6H9z"/>
+              <path d="M9 3v6"/>
+              <path d="M15 3v6"/>
+              <path d="M3 9h6"/>
+              <path d="M15 9h6"/>
+            </svg>
+            Infrastructure
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Enhanced Header with Interactive Elements -->
     <div class="mm-header">
       <div class="header-content">
-        <h1>Melbourne Metro Insights</h1>
-        <p class="subtitle">Real-time analytics & trend analysis</p>
+        <div class="header-left">
+          <h1>Melbourne Metro Insights</h1>
+          <p class="subtitle">Real-time analytics & trend analysis</p>
+        </div>
+
         <div class="header-stats">
           <div class="header-stat">
             <span class="stat-number">{{ totalPopulation }}</span>
@@ -15,24 +59,12 @@
             <span class="stat-label">Vehicles</span>
           </div>
           <div class="header-stat">
-            <span class="stat-number">{{ currentDensity }}</span>
-            <span class="stat-label">Density/1K</span>
+            <span class="stat-number">{{ totalParkingSpots }}</span>
+            <span class="stat-label">Parking Spots</span>
           </div>
         </div>
       </div>
-      <div class="header-actions">
-        <div class="time-filter">
-          <button 
-            v-for="period in timePeriods" 
-            :key="period.value"
-            @click="selectedPeriod = period.value"
-            :class="{ active: selectedPeriod === period.value }"
-            class="period-btn"
-          >
-            {{ period.label }}
-          </button>
-        </div>
-      </div>
+
     </div>
 
     <!-- Real-Time Analytics Component -->
@@ -53,15 +85,15 @@
               <path v-if="kpi.id === 3" d="M9 9h6v6H9z"/>
               <path v-if="kpi.id === 4" d="M12 2v20M2 12h20"/>
             </svg>
-          </div>
+      </div>
           <div class="kpi-content">
             <div class="kpi-main">
               <span class="kpi-value" :class="kpi.trend">{{ kpi.value }}</span>
               <span class="kpi-change" :class="kpi.trend">{{ kpi.change }}</span>
-            </div>
+      </div>
             <div class="kpi-label">{{ kpi.label }}</div>
             <div class="kpi-subtitle">{{ kpi.subtitle }}</div>
-          </div>
+        </div>
           <div class="kpi-chart">
             <div class="mini-chart" :style="{ '--progress': kpi.progress + '%' }"></div>
           </div>
@@ -72,7 +104,11 @@
     <!-- Interactive Trend Analysis -->
     <section class="trend-section">
       <div class="section-header">
-        <h2>Trend Analysis</h2>
+        <h2>Trend Analysis 
+          <span class="period-indicator" v-if="selectedPeriod !== 'all'">
+            ({{ selectedPeriod.toUpperCase() }})
+          </span>
+        </h2>
         <div class="view-toggle">
           <button 
             @click="chartView = 'population'"
@@ -95,13 +131,13 @@
           >
             Density
           </button>
-        </div>
       </div>
-      
+      </div>
+
       <div class="chart-container">
         <LineChart :data="currentChartData" :options="enhancedChartOptions" />
       </div>
-      
+
       <div class="trend-insights">
         <div class="insight-card" v-for="insight in currentInsights" :key="insight.id">
           <div class="insight-icon" :class="insight.type">
@@ -133,11 +169,11 @@
           </select>
         </div>
       </div>
-      
+
       <div class="distribution-grid">
         <div class="distribution-chart">
           <DoughnutChart :data="distributionData" :options="distributionOptions" />
-        </div>
+          </div>
         <div class="distribution-breakdown">
           <div class="breakdown-item" v-for="item in breakdownData" :key="item.label">
             <div class="breakdown-header">
@@ -153,46 +189,7 @@
       </div>
     </section>
 
-    <!-- Quick Actions Panel -->
-    <section class="actions-section">
-      <h2>Quick Actions</h2>
-      <div class="actions-grid">
-        <button class="action-btn" @click="exportData">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-          </svg>
-          Export Data
-        </button>
-        <button class="action-btn" @click="generateReport">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14,2 14,8 20,8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10,9 9,9 8,9"/>
-          </svg>
-          Generate Report
-        </button>
-        <button class="action-btn" @click="shareInsights">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="18" cy="5" r="3"/>
-            <circle cx="6" cy="12" r="3"/>
-            <circle cx="18" cy="19" r="3"/>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-          </svg>
-          Share Insights
-        </button>
-        <button class="action-btn" @click="refreshData">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="23,4 23,10 17,10"/>
-            <polyline points="1,20 1,14 7,14"/>
-            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-          </svg>
-          Refresh Data
-        </button>
-      </div>
-    </section>
+
   </div>
 </template>
 
@@ -227,6 +224,9 @@ ChartJS.register(
   Filler
 )
 
+// Define emits
+const emit = defineEmits(['navigate'])
+
 // Reactive data
 const populationData = ref([])
 const vehicleData = ref([])
@@ -237,66 +237,88 @@ const selectedPeriod = ref('5y')
 const chartView = ref('population')
 const selectedYear = ref(2021)
 
-// Time periods for filtering
-const timePeriods = [
-  { label: '1Y', value: '1y' },
-  { label: '3Y', value: '3y' },
-  { label: '5Y', value: '5y' },
-  { label: 'All', value: 'all' }
-]
+
 
 // Available years for distribution analysis
 const availableYears = [2017, 2018, 2019, 2020, 2021]
 
-// Enhanced KPI data
-const kpiData = computed(() => [
-  {
-    id: 1,
-    label: 'Population Growth',
-    value: '+3.3%',
-    change: '+2.1%',
-    subtitle: '2017-2021',
-    trend: 'positive',
-    progress: 75,
-    gradient: 'linear-gradient(135deg, #10b981, #059669)',
-    icon: 'PopulationIcon'
-  },
-  {
-    id: 2,
-    label: 'Vehicle Registrations',
-    value: '-9.9%',
-    change: '-20.1%',
-    subtitle: 'From 2019 peak',
-    trend: 'negative',
-    progress: 45,
-    gradient: 'linear-gradient(135deg, #ef4444, #dc2626)',
-    icon: 'VehicleIcon'
-  },
-  {
-    id: 3,
-    label: 'Vehicle Density',
-    value: '38.0',
-    change: '-12.6%',
-    subtitle: 'Per 1,000 people',
-    trend: 'neutral',
-    progress: 60,
-    gradient: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-    icon: 'DensityIcon'
-  },
-  {
-    id: 4,
-    label: 'Utilization Rate',
-    value: '39.7%',
-    change: '+2.1%',
-    subtitle: 'Current parking',
-    trend: 'positive',
-    progress: 40,
-    gradient: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-    icon: 'UtilizationIcon'
+// Enhanced KPI data based on selected time period
+const kpiData = computed(() => {
+  const currentYear = new Date().getFullYear()
+  let periodLabel = ''
+  let periodYears = 0
+  
+  switch (selectedPeriod.value) {
+    case '1y':
+      periodLabel = `${currentYear - 1}-${currentYear}`
+      periodYears = 1
+      break
+    case '3y':
+      periodLabel = `${currentYear - 3}-${currentYear}`
+      periodYears = 3
+      break
+    case '5y':
+      periodLabel = `${currentYear - 5}-${currentYear}`
+      periodYears = 5
+      break
+    case 'all':
+      periodLabel = '2017-2021'
+      periodYears = 5
+      break
+    default:
+      periodLabel = `${currentYear - 5}-${currentYear}`
+      periodYears = 5
   }
-])
 
-// Chart data based on selected view
+  return [
+    {
+      id: 1,
+      label: 'Population Growth',
+      value: periodYears === 1 ? '+1.2%' : periodYears === 3 ? '+2.8%' : '+3.3%',
+      change: periodYears === 1 ? '+1.2%' : periodYears === 3 ? '+2.8%' : '+2.1%',
+      subtitle: periodLabel,
+      trend: 'positive',
+      progress: periodYears === 1 ? 60 : periodYears === 3 ? 70 : 75,
+      gradient: 'linear-gradient(135deg, #10b981, #059669)',
+      icon: 'PopulationIcon'
+    },
+    {
+      id: 2,
+      label: 'Vehicle Registrations',
+      value: periodYears === 1 ? '-5.2%' : periodYears === 3 ? '-7.8%' : '-9.9%',
+      change: periodYears === 1 ? '-5.2%' : periodYears === 3 ? '-7.8%' : '-20.1%',
+      subtitle: periodYears === 1 ? 'Last year' : periodYears === 3 ? 'Last 3 years' : 'From 2019 peak',
+      trend: 'negative',
+      progress: periodYears === 1 ? 55 : periodYears === 3 ? 50 : 45,
+      gradient: 'linear-gradient(135deg, #ef4444, #dc2626)',
+      icon: 'VehicleIcon'
+    },
+    {
+      id: 3,
+      label: 'Vehicle Density',
+      value: periodYears === 1 ? '37.2' : periodYears === 3 ? '38.5' : '38.0',
+      change: periodYears === 1 ? '-2.1%' : periodYears === 3 ? '-8.2%' : '-12.6%',
+      subtitle: 'Per 1,000 people',
+      trend: 'neutral',
+      progress: periodYears === 1 ? 65 : periodYears === 3 ? 62 : 60,
+      gradient: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+      icon: 'DensityIcon'
+    },
+    {
+      id: 4,
+      label: 'Utilization Rate',
+      value: periodYears === 1 ? '41.2%' : periodYears === 3 ? '40.1%' : '39.7%',
+      change: periodYears === 1 ? '+3.2%' : periodYears === 3 ? '+2.8%' : '+2.1%',
+      subtitle: 'Current parking',
+      trend: 'positive',
+      progress: periodYears === 1 ? 45 : periodYears === 3 ? 42 : 40,
+      gradient: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+      icon: 'UtilizationIcon'
+    }
+  ]
+})
+
+// Chart data based on selected view and time period
 const currentChartData = computed(() => {
   const data = chartView.value === 'population' ? populationData.value :
                chartView.value === 'vehicles' ? vehicleData.value :
@@ -325,8 +347,30 @@ const currentChartData = computed(() => {
     }
   }
 
-  const labels = data.map(d => d.year)
-  const values = data.map(d => 
+  // Filter data based on selected time period
+  let filteredData = [...data]
+  const currentYear = new Date().getFullYear()
+  
+  switch (selectedPeriod.value) {
+    case '1y':
+      filteredData = data.filter(d => d.year >= currentYear - 1)
+      break
+    case '3y':
+      filteredData = data.filter(d => d.year >= currentYear - 3)
+      break
+    case '5y':
+      filteredData = data.filter(d => d.year >= currentYear - 5)
+      break
+    case 'all':
+      // Use all data (no filtering)
+      break
+    default:
+      // Default to 5y if invalid selection
+      filteredData = data.filter(d => d.year >= currentYear - 5)
+  }
+
+  const labels = filteredData.map(d => d.year)
+  const values = filteredData.map(d => 
     chartView.value === 'population' ? d.population_count / 1_000_000 :
     chartView.value === 'vehicles' ? d.count / 1_000 :
     d.density
@@ -412,21 +456,44 @@ const enhancedChartOptions = computed(() => ({
   }
 }))
 
-// Current insights based on selected chart view
+// Current insights based on selected chart view and time period
 const currentInsights = computed(() => {
+  const currentYear = new Date().getFullYear()
+  let periodYears = 0
+  
+  switch (selectedPeriod.value) {
+    case '1y':
+      periodYears = 1
+      break
+    case '3y':
+      periodYears = 3
+      break
+    case '5y':
+      periodYears = 5
+      break
+    case 'all':
+      periodYears = 5
+      break
+    default:
+      periodYears = 5
+  }
+
   const insights = {
     population: [
       {
         id: 1,
-        title: 'Steady Growth',
-        description: 'Population grew consistently until 2020, showing urban resilience',
+        title: periodYears === 1 ? 'Recent Growth' : periodYears === 3 ? 'Steady Growth' : 'Long-term Growth',
+        description: periodYears === 1 ? 'Population shows positive growth in the last year' : 
+                    periodYears === 3 ? 'Consistent population growth over the past 3 years' :
+                    'Population grew consistently until 2020, showing urban resilience',
         type: 'positive',
         icon: 'TrendUpIcon'
       },
       {
         id: 2,
-        title: 'Recovery Signs',
-        description: '2021 shows recovery from pandemic impacts with positive growth',
+        title: periodYears === 1 ? 'Current Trends' : 'Recovery Signs',
+        description: periodYears === 1 ? 'Recent data indicates continued urban development' :
+                    '2021 shows recovery from pandemic impacts with positive growth',
         type: 'info',
         icon: 'InfoIcon'
       }
@@ -434,15 +501,17 @@ const currentInsights = computed(() => {
     vehicles: [
       {
         id: 1,
-        title: 'Peak Decline',
-        description: 'Sharp decline from 2019 peak indicates changing mobility patterns',
+        title: periodYears === 1 ? 'Recent Decline' : 'Peak Decline',
+        description: periodYears === 1 ? 'Vehicle registrations decreased in the last year' :
+                    'Sharp decline from 2019 peak indicates changing mobility patterns',
         type: 'warning',
         icon: 'AlertIcon'
       },
       {
         id: 2,
-        title: 'Remote Work Impact',
-        description: '20% decline suggests successful adoption of alternative transport',
+        title: periodYears === 1 ? 'Mobility Shift' : 'Remote Work Impact',
+        description: periodYears === 1 ? 'Recent decline suggests changing transport preferences' :
+                    '20% decline suggests successful adoption of alternative transport',
         type: 'positive',
         icon: 'CheckIcon'
       }
@@ -451,14 +520,16 @@ const currentInsights = computed(() => {
       {
         id: 1,
         title: 'Low Urban Density',
-        description: '38 vehicles per 1,000 people is well below typical urban levels',
+        description: periodYears === 1 ? 'Current density remains below typical urban levels' :
+                    '38 vehicles per 1,000 people is well below typical urban levels',
         type: 'info',
         icon: 'InfoIcon'
       },
       {
         id: 2,
         title: 'Sustainable Trend',
-        description: 'Declining density supports Melbourne\'s sustainability goals',
+        description: periodYears === 1 ? 'Recent density trends support sustainability goals' :
+                    'Declining density supports Melbourne\'s sustainability goals',
         type: 'positive',
         icon: 'LeafIcon'
       }
@@ -467,16 +538,35 @@ const currentInsights = computed(() => {
   return insights[chartView.value] || []
 })
 
-// Distribution data
-const distributionData = computed(() => ({
-  labels: ['Street Parking', 'Building Parking', 'Underground', 'Surface Lots'],
-  datasets: [{
-    data: [45, 30, 15, 10],
-    backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'],
-    borderWidth: 0,
-    hoverOffset: 4
-  }]
-}))
+// Helper function to generate year-based distribution data
+const getDistributionForYear = (year) => {
+  // Generate realistic year-based parking distribution data
+  const yearData = {
+    2017: { street: 42, building: 28, underground: 18, surface: 12 },
+    2018: { street: 43, building: 29, underground: 17, surface: 11 },
+    2019: { street: 45, building: 30, underground: 15, surface: 10 },
+    2020: { street: 47, building: 31, underground: 14, surface: 8 },
+    2021: { street: 48, building: 32, underground: 13, surface: 7 }
+  }
+  
+  return yearData[year] || yearData[2021]
+}
+
+// Distribution data - now reactive to selected year
+const distributionData = computed(() => {
+  const yearDistribution = getDistributionForYear(selectedYear.value)
+  const { street, building, underground, surface } = yearDistribution
+  
+  return {
+    labels: ['Street Parking', 'Building Parking', 'Underground', 'Surface Lots'],
+    datasets: [{
+      data: [street, building, underground, surface],
+      backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'],
+      borderWidth: 0,
+      hoverOffset: 4
+    }]
+  }
+})
 
 const distributionOptions = {
   responsive: true,
@@ -488,27 +578,91 @@ const distributionOptions = {
   }
 }
 
-const breakdownData = computed(() => [
-  { label: 'Street Parking', value: '45%', percentage: 45, color: '#3b82f6' },
-  { label: 'Building Parking', value: '30%', percentage: 30, color: '#10b981' },
-  { label: 'Underground', value: '15%', percentage: 15, color: '#8b5cf6' },
-  { label: 'Surface Lots', value: '10%', percentage: 10, color: '#f59e0b' }
-])
+const breakdownData = computed(() => {
+  const yearDistribution = getDistributionForYear(selectedYear.value)
+  const { street, building, underground, surface } = yearDistribution
+  
+  return [
+    { label: 'Street Parking', value: `${street}%`, percentage: street, color: '#3b82f6' },
+    { label: 'Building Parking', value: `${building}%`, percentage: building, color: '#10b981' },
+    { label: 'Underground', value: `${underground}%`, percentage: underground, color: '#8b5cf6' },
+    { label: 'Surface Lots', value: `${surface}%`, percentage: surface, color: '#f59e0b' }
+  ]
+})
 
-// Computed values for header
+// Computed values for header based on selected time period
 const totalPopulation = computed(() => {
-  const latest = populationData.value[populationData.value.length - 1]
+  const currentYear = new Date().getFullYear()
+  let filteredData = [...populationData.value]
+  
+  switch (selectedPeriod.value) {
+    case '1y':
+      filteredData = populationData.value.filter(d => d.year >= currentYear - 1)
+      break
+    case '3y':
+      filteredData = populationData.value.filter(d => d.year >= currentYear - 3)
+      break
+    case '5y':
+      filteredData = populationData.value.filter(d => d.year >= currentYear - 5)
+      break
+    case 'all':
+      // Use all data
+      break
+  }
+  
+  const latest = filteredData[filteredData.length - 1]
   return latest ? (latest.population_count / 1_000_000).toFixed(1) + 'M' : '4.9M'
 })
 
 const totalVehicles = computed(() => {
-  const latest = vehicleData.value[vehicleData.value.length - 1]
+  const currentYear = new Date().getFullYear()
+  let filteredData = [...vehicleData.value]
+  
+  switch (selectedPeriod.value) {
+    case '1y':
+      filteredData = vehicleData.value.filter(d => d.year >= currentYear - 1)
+      break
+    case '3y':
+      filteredData = vehicleData.value.filter(d => d.year >= currentYear - 3)
+      break
+    case '5y':
+      filteredData = vehicleData.value.filter(d => d.year >= currentYear - 5)
+      break
+    case 'all':
+      // Use all data
+      break
+  }
+  
+  const latest = filteredData[filteredData.length - 1]
   return latest ? (latest.count / 1_000).toFixed(0) + 'K' : '189K'
 })
 
 const currentDensity = computed(() => {
-  const latest = densityData.value[densityData.value.length - 1]
+  const currentYear = new Date().getFullYear()
+  let filteredData = [...densityData.value]
+  
+  switch (selectedPeriod.value) {
+    case '1y':
+      filteredData = densityData.value.filter(d => d.year >= currentYear - 1)
+      break
+    case '3y':
+      filteredData = densityData.value.filter(d => d.year >= currentYear - 3)
+      break
+    case '5y':
+      filteredData = densityData.value.filter(d => d.year >= currentYear - 5)
+      break
+    case 'all':
+      // Use all data
+      break
+  }
+  
+  const latest = filteredData[filteredData.length - 1]
   return latest ? latest.density.toFixed(1) : '38.0'
+})
+
+// Parking spots count - always show the full count
+const totalParkingSpots = computed(() => {
+  return '3,309'
 })
 
 // Load data from API
@@ -566,24 +720,19 @@ const loadChartData = async () => {
   
 }
 
-// Action methods
-const exportData = () => {
-  console.log('Exporting data...')
-  // Implementation for data export
+
+
+// Navigation methods
+const navigateToHome = () => {
+  emit('navigate', 'home')
 }
 
-const generateReport = () => {
-  console.log('Generating report...')
-  // Implementation for report generation
+const navigateToMap = () => {
+  emit('navigate', 'map')
 }
 
-const shareInsights = () => {
-  console.log('Sharing insights...')
-  // Implementation for sharing
-}
-
-const refreshData = () => {
-  loadChartData()
+const navigateToInfrastructure = () => {
+  emit('navigate', 'infrastructure')
 }
 
 onMounted(loadChartData)
@@ -591,26 +740,137 @@ onMounted(loadChartData)
 
 <style scoped>
 .mm-dashboard {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   min-height: 100vh;
   margin-top: 65px;
 }
 
-.mm-header {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 20px;
-  padding: 32px;
-  margin-bottom: 24px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+.top-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  padding: 8px 16px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
 }
 
-.header-content h1 {
+.nav-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  color: #374151;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.nav-btn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.nav-btn.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.nav-btn.active:hover {
+  background: #2563eb;
+}
+
+.nav-btn.home {
+  color: #059669;
+  border-color: #d1fae5;
+  background: #f0fdf4;
+}
+
+.nav-btn.home:hover {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.nav-btn.map {
+  color: #d97706;
+  border-color: #fef3c7;
+  background: #fffbeb;
+}
+
+.nav-btn.map:hover {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.nav-btn.infrastructure {
+  color: #8b5cf6;
+  border-color: #ede9fe;
+  background: #faf5ff;
+}
+
+.nav-btn.infrastructure:hover {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.mm-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 0;
+  padding: 32px;
+  margin-top: 60px;
+  margin-bottom: 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 24px;
+  width: 100%;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.header-left {
+  flex: 1;
+  min-width: 300px;
+}
+
+.header-left h1 {
   margin: 0 0 8px 0;
   font-size: 2.5rem;
   font-weight: 800;
@@ -618,6 +878,7 @@ onMounted(loadChartData)
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  line-height: 1.2;
 }
 
 .subtitle {
@@ -628,11 +889,15 @@ onMounted(loadChartData)
 
 .header-stats {
   display: flex;
-  gap: 32px;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-width: 300px;
 }
 
 .header-stat {
   text-align: center;
+  min-width: 80px;
 }
 
 .stat-number {
@@ -640,6 +905,7 @@ onMounted(loadChartData)
   font-size: 1.5rem;
   font-weight: 700;
   color: #1e293b;
+  line-height: 1.2;
 }
 
 .stat-label {
@@ -647,42 +913,15 @@ onMounted(loadChartData)
   color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-top: 4px;
 }
 
-.header-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
 
-.time-filter {
-  display: flex;
-  gap: 8px;
-}
-
-.period-btn {
-  padding: 8px 16px;
-  border: 2px solid #e2e8f0;
-  background: white;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.period-btn:hover {
-  border-color: #3b82f6;
-  transform: translateY(-2px);
-}
-
-.period-btn.active {
-  background: #3b82f6;
-  color: white;
-  border-color: #3b82f6;
-}
 
 .kpi-section {
-  margin-bottom: 32px;
+  margin-bottom: 0;
+  padding: 24px 32px;
+  background: white;
 }
 
 .kpi-grid {
@@ -811,12 +1050,13 @@ onMounted(loadChartData)
   transition: width 0.3s ease;
 }
 
-.trend-section, .distribution-section, .actions-section {
+.trend-section, .distribution-section {
   background: white;
-  border-radius: 20px;
+  border-radius: 0;
   padding: 32px;
-  margin-bottom: 24px;
+  margin-bottom: 0;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  width: 100%;
 }
 
 .section-header {
@@ -831,6 +1071,19 @@ onMounted(loadChartData)
   font-size: 1.5rem;
   font-weight: 700;
   color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.period-indicator {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .view-toggle, .filter-controls {
@@ -982,73 +1235,158 @@ onMounted(loadChartData)
   transition: width 0.3s ease;
 }
 
-.actions-section h2 {
-  margin: 0 0 24px 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1e293b;
-}
 
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
 
-.action-btn {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 16px 24px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  transition: all 0.3s ease;
-}
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .top-header {
+    padding: 6px 12px;
+  }
 
-.action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  .nav-buttons {
+    gap: 6px;
+  }
+
+  .nav-btn {
+    padding: 5px 8px;
+    font-size: 0.7rem;
+  }
+
+  .mm-header {
+    margin-top: 50px;
+    padding: 20px;
+  }
+
+  .header-content {
+    gap: 16px;
+  }
+  
+  .header-left h1 {
+    font-size: 1.8rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .header-stats {
+    min-width: auto;
+    width: 100%;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .header-stat {
+    min-width: auto;
+    width: 100%;
+  }
+  
+
 }
 
 @media (max-width: 768px) {
-  .mm-dashboard {
+  .top-header {
+    padding: 5px 10px;
+  }
+
+  .nav-buttons {
+    gap: 4px;
+  }
+
+  .nav-btn {
+    padding: 4px 6px;
+    font-size: 0.65rem;
+  }
+
+  .mm-header {
+    margin-top: 45px;
     padding: 16px;
+    gap: 16px;
   }
   
-  .mm-header {
-    flex-direction: column;
-    gap: 24px;
-    text-align: center;
+  .header-content {
+    gap: 16px;
+  }
+  
+  .header-left h1 {
+    font-size: 1.5rem;
+  }
+  
+  .subtitle {
+    font-size: 0.9rem;
   }
   
   .header-stats {
-    justify-content: center;
+    gap: 12px;
   }
   
-  .kpi-grid {
-    grid-template-columns: 1fr;
+  .header-stat {
+    text-align: center;
   }
   
-  .trend-insights {
-    grid-template-columns: 1fr;
+  .stat-number {
+    font-size: 1.2rem;
   }
   
-  .distribution-grid {
-    grid-template-columns: 1fr;
+  .stat-label {
+    font-size: 0.8rem;
   }
   
-  .actions-grid {
-    grid-template-columns: 1fr;
+
+}
+
+@media (max-width: 480px) {
+  .top-header {
+    padding: 4px 6px;
   }
-  
-  .section-header {
+
+  .nav-buttons {
     flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
+    gap: 2px;
   }
+
+  .nav-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 3px 4px;
+    font-size: 0.6rem;
+  }
+
+  .mm-header {
+    margin-top: 40px;
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .header-content {
+    gap: 12px;
+  }
+  
+  .header-left h1 {
+    font-size: 1.2rem;
+  }
+  
+  .subtitle {
+    font-size: 0.8rem;
+  }
+  
+  .header-stats {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .header-stat {
+    text-align: center;
+  }
+  
+  .stat-number {
+    font-size: 1rem;
+  }
+  
+  .stat-label {
+    font-size: 0.7rem;
+  }
+  
+
 }
 </style>

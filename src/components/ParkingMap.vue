@@ -1,210 +1,238 @@
 <template>
   <div class="map-container">
-    <!-- Modern Header Panel -->
-    <div class="map-header">
-      <div class="header-content">
-        <div class="header-left">
-          <h1 class="header-title">Melbourne Parking Map</h1>
-          <p class="header-subtitle">Real-time parking availability across the city</p>
-        </div>
-        
-        <!-- Live Stats -->
-        <div class="live-stats">
-          <div class="stat-item">
-            <div class="stat-icon">LOCATION</div>
-            <div class="stat-content">
-              <div class="stat-value">{{ parkingCount }}</div>
-              <div class="stat-label">Total Spots</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">AVAILABLE</div>
-            <div class="stat-content">
-              <div class="stat-value">{{ availableCount }}</div>
-              <div class="stat-label">Available</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">OCCUPIED</div>
-            <div class="stat-content">
-              <div class="stat-value">{{ occupiedCount }}</div>
-              <div class="stat-label">Occupied</div>
-            </div>
-          </div>
+    <!-- Top Section: Navigation Header -->
+    <div class="top-header">
+      <div class="nav-container">
+        <div class="nav-buttons">
+          <button @click="navigateToHome" class="nav-btn home" title="Home">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9,22 9,12 15,12 15,22"/>
+            </svg>
+            Home
+          </button>
+          <button @click="navigateToInsights" class="nav-btn insights" title="Data Insights">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 20V10"/>
+              <path d="M12 20V4"/>
+              <path d="M6 20v-6"/>
+            </svg>
+            Data Insights
+          </button>
+          <button @click="navigateToMap" class="nav-btn active" title="Map">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+              <circle cx="12" cy="9" r="2.5"/>
+            </svg>
+            Map
+          </button>
+          <button @click="navigateToInfrastructure" class="nav-btn infrastructure" title="Infrastructure">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3v18h18"/>
+              <path d="M9 9h6v6H9z"/>
+              <path d="M9 3v6"/>
+              <path d="M15 3v6"/>
+              <path d="M3 9h6"/>
+              <path d="M15 9h6"/>
+            </svg>
+            Infrastructure
+          </button>
         </div>
       </div>
+    </div>
 
-      <!-- Enhanced Search Bar -->
-      <div class="search-section">
-        <div class="search-container">
-          <div class="search-input-wrapper">
-            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.35-4.35"/>
-            </svg>
-            <input
-              v-model="searchQuery"
-              @keyup.enter="searchLocation"
-              type="text"
-              placeholder="Search for a location in Melbourne..."
-              class="search-input"
-            >
-            <button @click="searchLocation" :disabled="searching" class="search-btn">
-              <svg v-if="!searching" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="m21 21-4.35-4.35"/>
-              </svg>
-              <div v-else class="search-spinner"></div>
-            </button>
+    <!-- Middle Section: Map Header Panel -->
+    <div class="middle-section">
+      <div class="map-header">
+        <div class="header-content">
+          <div class="header-left">
+            <h1 class="header-title">Melbourne Parking Map</h1>
+            <p class="header-subtitle">Real-time parking availability across the city</p>
           </div>
           
-          <div class="action-buttons">
-            <button @click="resetView" class="action-btn reset-btn" v-if="searchQuery">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-                <path d="M21 3v5h-5"/>
-                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-                <path d="M3 21v-5h5"/>
-              </svg>
-              Show All
-            </button>
-            <button @click="loadParkingData" :disabled="loading" class="action-btn refresh-btn">
-              <svg v-if="!loading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-                <path d="M21 3v5h-5"/>
-                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-                <path d="M3 21v-5h5"/>
-              </svg>
-              <div v-else class="refresh-spinner"></div>
-              {{ loading ? 'Loading...' : 'Refresh' }}
-            </button>
+          <!-- Live Stats -->
+          <div class="live-stats">
+            <div class="stat-item">
+              <div class="stat-icon">LOCATION</div>
+              <div class="stat-content">
+                <div class="stat-value">{{ parkingCount }}</div>
+                <div class="stat-label">Total Spots</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">AVAILABLE</div>
+              <div class="stat-content">
+                <div class="stat-value">{{ availableCount }}</div>
+                <div class="stat-label">Available</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">OCCUPIED</div>
+              <div class="stat-content">
+                <div class="stat-value">{{ occupiedCount }}</div>
+                <div class="stat-label">Occupied</div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Enhanced Filters -->
-      <div class="filters-section">
-        <!-- Parking Type Filters -->
-        <div class="filter-group">
-          <label class="filter-label">Parking Type</label>
-          <div class="filter-buttons">
-            <button 
-              @click="setParkingTypeFilter('all')" 
-              :class="{ active: parkingTypeFilter === 'all' }" 
-              class="filter-btn"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <!-- Enhanced Search Bar -->
+        <div class="search-section">
+          <div class="search-container">
+            <div class="search-input-wrapper">
+              <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input
+                v-model="searchQuery"
+                @keyup.enter="searchLocation"
+                type="text"
+                placeholder="Search for a location in Melbourne..."
+                class="search-input"
+              />
+              <button @click="searchLocation" :disabled="searching" class="search-btn">
+                <svg v-if="!searching" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <div v-else class="search-spinner"></div>
+              </button>
+            </div>
+            
+            <div class="action-buttons">
+              <button @click="resetView" class="action-btn reset-btn" v-if="searchQuery">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                  <path d="M21 3v5h-5"/>
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                  <path d="M3 21v-5h5"/>
+                </svg>
+                Show All
+              </button>
+              <button @click="loadParkingData" :disabled="loading" class="action-btn refresh-btn">
+                <svg v-if="!loading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                  <path d="M21 3v5h-5"/>
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                  <path d="M3 21v-5h5"/>
+                </svg>
+                <div v-else class="refresh-spinner"></div>
+                {{ loading ? 'Loading...' : 'Refresh' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enhanced Filters -->
+        <div class="filters-section">
+          <!-- Parking Type Filters -->
+          <div class="filter-group">
+            <label class="filter-label">Parking Type</label>
+            <div class="filter-buttons">
+              <button 
+                @click="setParkingTypeFilter('all')" 
+                :class="{ active: parkingTypeFilter === 'all' }" 
+                class="filter-btn"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M8 12h8"/>
+                  <path d="M12 8v8"/>
+                </svg>
+                All Types
+              </button>
+              <button 
+                @click="setParkingTypeFilter('street')" 
+                :class="{ active: parkingTypeFilter === 'street' }" 
+                class="filter-btn"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                  <circle cx="12" cy="9" r="2.5"/>
+                </svg>
+                Street Parking
+              </button>
+              <button 
+                @click="setParkingTypeFilter('building')" 
+                :class="{ active: parkingTypeFilter === 'building' }" 
+                class="filter-btn"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 3v18h18"/>
+                  <path d="M9 9h6v6H9z"/>
+                </svg>
+                Building Parking
+              </button>
+            </div>
+          </div>
+
+          <!-- NEW: Suburb Filter -->
+          <div class="filter-group">
+            <label class="filter-label">Suburb</label>
+            <div class="suburb-filter">
+              <select v-model="selectedSuburb" @change="filterBySuburb" class="suburb-select">
+                <option value="">All Suburbs ({{ availableSuburbs.length }})</option>
+                <option v-for="suburb in availableSuburbs" :key="suburb" :value="suburb">
+                  {{ suburb }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Indicators -->
+        <div class="status-section">
+          <div class="status-indicators">
+            <div v-if="isFiltered" class="status-badge filter-active">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46"/>
+              </svg>
+              Filtered: {{ searchLocationName }}
+            </div>
+            <div class="status-badge data-source" :class="{ 'real-data': usingRealData, 'mock-data': !usingRealData }">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/>
-                <path d="M8 12h8"/>
-                <path d="M12 8v8"/>
+                <path d="M12 16v-4"/>
+                <path d="M12 8h.01"/>
               </svg>
-              All Types
-            </button>
-            <button 
-              @click="setParkingTypeFilter('street')" 
-              :class="{ active: parkingTypeFilter === 'street' }" 
-              class="filter-btn"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                <circle cx="12" cy="9" r="2.5"/>
-              </svg>
-              Street Parking
-            </button>
-            <button 
-              @click="setParkingTypeFilter('building')" 
-              :class="{ active: parkingTypeFilter === 'building' }" 
-              class="filter-btn"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 3v18h18"/>
-                <path d="M9 9h6v6H9z"/>
-              </svg>
-              Building Parking
-            </button>
+              {{ dataSource }}
+            </div>
           </div>
-        </div>
 
-        <!-- NEW: Suburb Filter -->
-        <div class="filter-group">
-          <label class="filter-label">Suburb</label>
-          <div class="suburb-filter">
-            <select v-model="selectedSuburb" @change="filterBySuburb" class="suburb-select">
-              <option value="">All Suburbs ({{ availableSuburbs.length }})</option>
-              <option v-for="suburb in availableSuburbs" :key="suburb" :value="suburb">
-                {{ suburb }}
-              </option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- Status Indicators -->
-      <div class="status-section">
-        <div class="status-indicators">
-          <div v-if="isFiltered" class="status-badge filter-active">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46"/>
-            </svg>
-            Filtered: {{ searchLocationName }}
-          </div>
-          <div class="status-badge data-source" :class="{ 'real-data': usingRealData, 'mock-data': !usingRealData }">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 16v-4"/>
-              <path d="M12 8h.01"/>
-            </svg>
-            {{ dataSource }}
-          </div>
-        </div>
-
-        <!-- Enhanced Legend -->
-        <div class="legend">
-          <div class="legend-item" v-if="parkingTypeFilter === 'all' || parkingTypeFilter === 'street'">
-            <div class="legend-dot available"></div>
-            <span>Available</span>
-          </div>
-          <div class="legend-item" v-if="parkingTypeFilter === 'all' || parkingTypeFilter === 'street'">
-            <div class="legend-dot occupied"></div>
-            <span>Occupied</span>
-          </div>
-          <div class="legend-item" v-if="parkingTypeFilter === 'all' || parkingTypeFilter === 'building'">
-            <div class="legend-dot building"></div>
-            <span>Building Parking</span>
+          <!-- Enhanced Legend -->
+          <div class="legend">
+            <div class="legend-item" v-if="parkingTypeFilter === 'all' || parkingTypeFilter === 'street'">
+              <div class="legend-dot available"></div>
+              <span>Available</span>
+            </div>
+            <div class="legend-item" v-if="parkingTypeFilter === 'all' || parkingTypeFilter === 'street'">
+              <div class="legend-dot occupied"></div>
+              <span>Occupied</span>
+            </div>
+            <div class="legend-item" v-if="parkingTypeFilter === 'all' || parkingTypeFilter === 'building'">
+              <div class="legend-dot building"></div>
+              <span>Building Parking</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Map Container -->
-    <div ref="mapContainer" class="map" id="map"></div>
-    
-    <!-- Loading Overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-content">
-        <div class="loading-spinner"></div>
-        <h3>Loading Parking Data</h3>
-        <p>Fetching real-time availability from Melbourne API...</p>
+    <!-- Bottom Section: Map Container -->
+    <div class="bottom-section">
+      <div ref="mapContainer" class="map" id="map"></div>
+      
+      <!-- Loading Overlay -->
+      <div v-if="loading" class="loading-overlay">
+        <div class="loading-content">
+          <div class="loading-spinner"></div>
+          <h3>Loading Parking Data</h3>
+          <p>Fetching real-time availability from Melbourne API...</p>
+        </div>
       </div>
-    </div>
 
-    <!-- Quick Actions Floating Panel -->
-    <div class="quick-actions">
-      <button @click="zoomToCBD" class="quick-action-btn" title="Zoom to CBD">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-          <circle cx="12" cy="9" r="2.5"/>
-        </svg>
-      </button>
-      <button @click="toggleHeatmap" class="quick-action-btn" title="Toggle Heatmap">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2v20M2 12h20"/>
-        </svg>
-      </button>
-      <button @click="showPopularAreas" class="quick-action-btn" title="Popular Areas">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-        </svg>
-      </button>
+
     </div>
   </div>
 </template>
@@ -216,6 +244,34 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { MAPBOX_CONFIG, BACKEND_CONFIG } from '../config/mapbox.js'
 import { calculateDistance, getDisplayName } from '../utils/common.js'
 
+// Helper function to generate realistic hourly rates
+const generateHourlyRate = (zoneNumber, area) => {
+  // Use zone number or area to generate consistent rates
+  const seed = zoneNumber || area || 'default'
+  const hash = seed.toString().split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0)
+    return a & a
+  }, 0)
+  
+  const random = Math.abs(hash) % 100
+  
+  // Generate realistic Melbourne parking rates
+  const rates = [2.20, 4.40, 6.60, 8.80, 11.00, 13.20]
+  const selectedRate = rates[random % rates.length]
+  
+  // CBD areas tend to be more expensive
+  if (area && area.toLowerCase().includes('cbd')) {
+    return Math.max(selectedRate, 6.60).toFixed(2)
+  }
+  
+  // Higher zone numbers might indicate premium areas
+  if (zoneNumber && parseInt(zoneNumber) > 7000) {
+    return Math.max(selectedRate, 4.40).toFixed(2)
+  }
+  
+  return selectedRate.toFixed(2)
+}
+
 // Define props
 const props = defineProps({
   selectedSpot: {
@@ -224,8 +280,11 @@ const props = defineProps({
   }
 })
 
-console.log('ParkingMap: Props received:', props)
-console.log('ParkingMap: selectedSpot:', props.selectedSpot)
+// Define emits
+const emit = defineEmits(['navigate'])
+
+    // console.log('ParkingMap: Props received:', props)
+    // console.log('ParkingMap: selectedSpot:', props.selectedSpot)
 
 // Building parking data
 let buildingParkingData = null
@@ -249,26 +308,11 @@ const parkingTypeFilter = ref('all')
 // NEW: Suburb filtering
 const selectedSuburb = ref('')
 const availableSuburbs = ref([])
-const heatmapMode = ref(false)
 
 // Backend API configuration
 const BACKEND_URL = BACKEND_CONFIG.baseURL
 
-// Melbourne CBD coordinates
-const MELBOURNE_CBD = {
-  center: [144.9631, -37.8136],
-  zoom: 14
-}
 
-// Popular areas for quick navigation
-const POPULAR_AREAS = [
-  { name: 'CBD', center: [144.9631, -37.8136], zoom: 15 },
-  { name: 'Docklands', center: [144.9450, -37.8160], zoom: 16 },
-  { name: 'Southbank', center: [144.9600, -37.8200], zoom: 16 },
-  { name: 'Carlton', center: [144.9700, -37.8000], zoom: 15 },
-  { name: 'Fitzroy', center: [144.9800, -37.8000], zoom: 15 },
-  { name: 'St Kilda', center: [144.9800, -37.8600], zoom: 15 }
-]
 
 console.log('Environment debug info:')
 console.log('  - Mode:', import.meta.env.MODE)
@@ -279,6 +323,12 @@ console.log('  - Final backend URL:', BACKEND_URL)
 
 onMounted(() => {
   initializeMap()
+  
+  // Add global function for opening directions
+  window.openDirections = (lat, lng, locationName) => {
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodeURIComponent(locationName)}`
+    window.open(googleMapsUrl, '_blank')
+  }
 })
 
 onUnmounted(() => {
@@ -490,62 +540,9 @@ const filterBySuburb = () => {
   }
 }
 
-// NEW: Quick action functions
-const zoomToCBD = () => {
-  map.flyTo({
-    center: MELBOURNE_CBD.center,
-    zoom: MELBOURNE_CBD.zoom,
-    duration: 2000
-  })
-}
 
-const toggleHeatmap = () => {
-  heatmapMode.value = !heatmapMode.value
-  if (heatmapMode.value) {
-    map.setStyle('mapbox://styles/mapbox/dark-v11')
-  } else {
-    map.setStyle(MAPBOX_CONFIG.styles.streets)
-  }
-}
 
-const showPopularAreas = () => {
-  const popup = new mapboxgl.Popup()
-    .setLngLat(MELBOURNE_CBD.center)
-    .setHTML(`
-      <div class="popular-areas-popup">
-        <h3>Popular Areas</h3>
-        <div class="areas-list">
-          ${POPULAR_AREAS.map(area => `
-            <button onclick="window.zoomToArea('${area.name}', ${area.center[0]}, ${area.center[1]}, ${area.zoom})" class="area-btn">
-              ${area.name}
-            </button>
-          `).join('')}
-        </div>
-      </div>
-    `)
-    .addTo(map)
-}
 
-// Add global function for area navigation
-window.zoomToArea = (name, lng, lat, zoom) => {
-  map.flyTo({
-    center: [lng, lat],
-    zoom: zoom,
-    duration: 2000
-  })
-}
-
-const updateMapStyle = () => {
-  if (!map) return
-
-  if (heatmapMode.value) {
-    // Switch to heatmap style
-    map.setStyle('mapbox://styles/mapbox/dark-v11')
-  } else {
-    // Switch back to streets style
-    map.setStyle(MAPBOX_CONFIG.styles.streets)
-  }
-}
 
 // Show selected parking spot on map
 const showSelectedSpotOnMap = (spotInfo) => {
@@ -684,13 +681,29 @@ const addBuildingParkingLayer = () => {
       coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
     }
 
+    // Generate hourly rate for building parking
+    const buildingHourlyRate = generateHourlyRate(null, properties.building_address)
+    
     new mapboxgl.Popup()
       .setLngLat(coordinates)
       .setHTML(`
-        <h3>Building Parking Details</h3>
-        <p><strong>Address:</strong> ${properties.building_address}</p>
-        <p><strong>Parking Type:</strong> ${properties.parking_type}</p>
-        <p><strong>Parking Spaces:</strong> ${properties.parking_spaces}</p>
+        <div class="building-parking-popup">
+          <h3>Building Parking Details</h3>
+          <p><strong>Address:</strong> ${properties.building_address}</p>
+          <p><strong>Parking Type:</strong> ${properties.parking_type}</p>
+          <p><strong>Parking Spaces:</strong> ${properties.parking_spaces}</p>
+          <p><strong>Hourly Rate:</strong> <span style="color: #3b82f6; font-weight: bold;">$${buildingHourlyRate}/hour</span></p>
+          <div class="popup-actions">
+            <button onclick="window.openDirections('${coordinates[1]}', '${coordinates[0]}', '${properties.building_address}')" class="directions-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
+              Get Directions
+            </button>
+          </div>
+        </div>
       `)
       .addTo(map)
   })
@@ -1092,6 +1105,9 @@ const addMapEventListeners = () => {
     const statusColor = properties.status === 'Available' ? 'green' : 'red'
     const displayName = getDisplayName(properties)
 
+    // Generate realistic hourly rate based on zone and area
+    const hourlyRate = generateHourlyRate(properties.zone_number, properties.area)
+    
     const popupContent = `
       <div class="parking-popup">
         <h3>${displayName}</h3>
@@ -1099,7 +1115,18 @@ const addMapEventListeners = () => {
         <p><strong>Location:</strong> ${displayName}</p>
         <p><strong>Area:</strong> ${properties.area}</p>
         <p><strong>Zone:</strong> ${properties.zone_number || 'N/A'}</p>
+        <p><strong>Hourly Rate:</strong> <span style="color: #3b82f6; font-weight: bold;">$${hourlyRate}/hour</span></p>
         ${properties.last_updated ? `<p><strong>Last Updated:</strong> ${properties.last_updated}</p>` : ''}
+        <div class="popup-actions">
+          <button onclick="window.openDirections('${coordinates[1]}', '${coordinates[0]}', '${displayName}')" class="directions-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+            Get Directions
+          </button>
+        </div>
         <p><em>Data from Backend API</em></p>
       </div>
     `
@@ -1255,6 +1282,23 @@ const updateParkingCounts = () => {
   availableCount.value = availableCountLocal
   occupiedCount.value = occupiedCountLocal
 }
+
+// Navigation functions
+const navigateToHome = () => {
+  emit('navigate', 'home')
+}
+
+const navigateToInsights = () => {
+  emit('navigate', 'insights')
+}
+
+const navigateToMap = () => {
+  emit('navigate', 'map')
+}
+
+const navigateToInfrastructure = () => {
+  emit('navigate', 'infrastructure')
+}
 </script>
 
 <style scoped>
@@ -1263,37 +1307,133 @@ const updateParkingCounts = () => {
 .map-container {
   width: 100%;
   height: 100vh;
-  position: relative;
+  display: flex;
+  flex-direction: column;
   font-family: 'Inter', sans-serif;
+  overflow: hidden;
 }
 
-/* Modern Header Panel */
-.map-header {
-  position: absolute;
-  top: 100px;
-  left: 20px;
-  right: 20px;
-  z-index: 1000;
+/* Top Section: Navigation Header */
+.top-header {
+  flex: 0 0 45px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+}
+
+.nav-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  color: #374151;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.nav-btn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.nav-btn.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.nav-btn.active:hover {
+  background: #2563eb;
+}
+
+.nav-btn.home {
+  color: #059669;
+  border-color: #d1fae5;
+  background: #f0fdf4;
+}
+
+.nav-btn.home:hover {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.nav-btn.insights {
+  color: #d97706;
+  border-color: #fef3c7;
+  background: #fffbeb;
+}
+
+.nav-btn.insights:hover {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.nav-btn.infrastructure {
+  color: #8b5cf6;
+  border-color: #ede9fe;
+  background: #faf5ff;
+}
+
+.nav-btn.infrastructure:hover {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+/* Middle Section: Map Header Panel */
+.middle-section {
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  z-index: 999;
+}
+
+.map-header {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .header-left h1 {
-  margin: 0 0 4px 0;
-  font-size: 1.8rem;
+  margin: 0 0 2px 0;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #1f2937;
   background: linear-gradient(135deg, #1f2937, #374151);
@@ -1304,7 +1444,7 @@ const updateParkingCounts = () => {
 
 .header-subtitle {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: #6b7280;
   font-weight: 400;
 }
@@ -1312,22 +1452,22 @@ const updateParkingCounts = () => {
 /* Live Stats */
 .live-stats {
   display: flex;
-  gap: 16px;
+  gap: 12px;
 }
 
 .stat-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: rgba(59, 130, 246, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.2);
-  border-radius: 12px;
-  padding: 8px 12px;
-  min-width: 80px;
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-width: 70px;
 }
 
 .stat-icon {
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
 
 .stat-content {
@@ -1335,28 +1475,28 @@ const updateParkingCounts = () => {
 }
 
 .stat-value {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #1f2937;
   line-height: 1;
 }
 
 .stat-label {
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 /* Enhanced Search Section */
 .search-section {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .search-container {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 }
 
@@ -1367,7 +1507,7 @@ const updateParkingCounts = () => {
   align-items: center;
   background: white;
   border: 2px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
   transition: all 0.3s ease;
 }
@@ -1379,17 +1519,17 @@ const updateParkingCounts = () => {
 
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 10px;
   color: #9ca3af;
   z-index: 1;
 }
 
 .search-input {
   flex: 1;
-  padding: 12px 12px 12px 40px;
+  padding: 8px 8px 8px 32px;
   border: none;
   outline: none;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   background: transparent;
 }
 
@@ -1399,12 +1539,12 @@ const updateParkingCounts = () => {
 
 .search-btn {
   position: absolute;
-  right: 8px;
+  right: 4px;
   background: #3b82f6;
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 6px;
+  border-radius: 4px;
+  padding: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
@@ -1423,8 +1563,8 @@ const updateParkingCounts = () => {
 }
 
 .search-spinner {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border: 2px solid transparent;
   border-top: 2px solid white;
   border-radius: 50%;
@@ -1433,19 +1573,19 @@ const updateParkingCounts = () => {
 
 .action-buttons {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .action-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 16px;
+  gap: 4px;
+  padding: 6px 10px;
   border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border-radius: 6px;
   background: white;
   color: #374151;
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1481,8 +1621,8 @@ const updateParkingCounts = () => {
 }
 
 .refresh-spinner {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border: 2px solid transparent;
   border-top: 2px solid #3b82f6;
   border-radius: 50%;
@@ -1492,19 +1632,19 @@ const updateParkingCounts = () => {
 /* Enhanced Filters */
 .filters-section {
   display: flex;
-  gap: 20px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .filter-label {
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   font-weight: 600;
   color: #374151;
   text-transform: uppercase;
@@ -1513,19 +1653,19 @@ const updateParkingCounts = () => {
 
 .filter-buttons {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .filter-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
+  gap: 4px;
+  padding: 5px 8px;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 6px;
   background: white;
   color: #6b7280;
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1548,17 +1688,17 @@ const updateParkingCounts = () => {
 }
 
 .suburb-filter {
-  min-width: 150px;
+  min-width: 120px;
 }
 
 .suburb-select {
   width: 100%;
-  padding: 8px 12px;
+  padding: 5px 8px;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 6px;
   background: white;
   color: #374151;
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1576,22 +1716,22 @@ const updateParkingCounts = () => {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
 }
 
 .status-indicators {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .status-badge {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.7rem;
+  gap: 3px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 0.6rem;
   font-weight: 500;
 }
 
@@ -1616,25 +1756,25 @@ const updateParkingCounts = () => {
 /* Enhanced Legend */
 .legend {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
+  gap: 4px;
+  font-size: 0.6rem;
   color: #6b7280;
   font-weight: 500;
 }
 
 .legend-dot {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .legend-dot.available {
@@ -1647,6 +1787,16 @@ const updateParkingCounts = () => {
 
 .legend-dot.building {
   background-color: #4264fb;
+}
+
+/* Bottom Section: Map Container */
+.bottom-section {
+  position: absolute;
+  top: 200px; /* Adjust based on top header and middle section height */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 998;
 }
 
 /* Map Container */
@@ -1701,38 +1851,7 @@ const updateParkingCounts = () => {
   margin: 0 auto 16px;
 }
 
-/* Quick Actions */
-.quick-actions {
-  position: absolute;
-  top: 100px;
-  right: 20px;
-  z-index: 1001;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
 
-.quick-action-btn {
-  width: 44px;
-  height: 44px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  color: #374151;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.quick-action-btn:hover {
-  background: white;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-}
 
 /* Animations */
 @keyframes spin {
@@ -1756,6 +1875,54 @@ const updateParkingCounts = () => {
 }
 
 :deep(.parking-popup p) {
+  margin: 6px 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #6b7280;
+}
+
+:deep(.popup-actions) {
+  margin: 12px 0;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+:deep(.directions-btn) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+:deep(.directions-btn:hover) {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+:deep(.directions-btn svg) {
+  width: 14px;
+  height: 14px;
+}
+
+:deep(.building-parking-popup h3) {
+  margin: 0 0 12px 0;
+  color: #1f2937;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+:deep(.building-parking-popup p) {
   margin: 6px 0;
   font-size: 0.85rem;
   line-height: 1.4;
@@ -1809,170 +1976,237 @@ const updateParkingCounts = () => {
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .map-header {
-    padding: 20px;
+  .top-header {
+    flex: 0 0 40px;
+    padding: 6px 12px;
   }
-  
+
+  .nav-buttons {
+    gap: 6px;
+  }
+
+  .nav-btn {
+    padding: 5px 8px;
+    font-size: 0.7rem;
+  }
+
+  .middle-section {
+    padding: 10px 12px;
+  }
+
+  .map-header {
+    gap: 10px;
+  }
+
   .header-content {
     flex-direction: column;
-    gap: 16px;
     align-items: flex-start;
+    gap: 10px;
   }
-  
+
+  .header-left h1 {
+    font-size: 1.1rem;
+  }
+
+  .header-subtitle {
+    font-size: 0.7rem;
+  }
+
   .live-stats {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .search-container {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
-  
+
   .action-buttons {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .filters-section {
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
   }
-  
+
   .filter-buttons {
     flex-wrap: wrap;
   }
-  
+
   .status-section {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
   }
 }
 
 @media (max-width: 768px) {
+  .top-header {
+    flex: 0 0 35px;
+    padding: 5px 10px;
+  }
+
+  .nav-buttons {
+    gap: 4px;
+  }
+
+  .nav-btn {
+    padding: 4px 6px;
+    font-size: 0.65rem;
+  }
+
+  .middle-section {
+    padding: 8px 10px;
+  }
+
   .map-header {
-    top: 80px;
-    left: 10px;
-    right: 10px;
-    padding: 16px;
-  }
-  
-  .header-left h1 {
-    font-size: 1.4rem;
-  }
-  
-  .live-stats {
     gap: 8px;
   }
-  
+
+  .header-content {
+    gap: 8px;
+  }
+
+  .header-left h1 {
+    font-size: 1rem;
+  }
+
+  .header-subtitle {
+    font-size: 0.65rem;
+  }
+
+  .live-stats {
+    flex-direction: column;
+    gap: 4px;
+  }
+
   .stat-item {
-    padding: 6px 8px;
-    min-width: 60px;
+    width: 100%;
+    justify-content: center;
   }
-  
-  .stat-value {
-    font-size: 0.9rem;
+
+  .search-input-wrapper {
+    border-radius: 6px;
   }
-  
-  .stat-label {
+
+  .search-input {
+    padding: 6px 6px 6px 28px;
+    font-size: 0.75rem;
+  }
+
+  .action-btn {
+    padding: 5px 8px;
+    font-size: 0.65rem;
+  }
+
+  .filter-btn {
+    padding: 4px 6px;
     font-size: 0.6rem;
   }
-  
-  .search-input-wrapper {
-    border-radius: 10px;
-  }
-  
-  .search-input {
-    padding: 10px 10px 10px 36px;
-    font-size: 0.85rem;
-  }
-  
-  .action-btn {
-    padding: 8px 12px;
-    font-size: 0.8rem;
-  }
-  
-  .filter-btn {
-    padding: 6px 10px;
-    font-size: 0.75rem;
-  }
-  
+
   .suburb-select {
-    padding: 6px 10px;
-    font-size: 0.75rem;
+    padding: 4px 6px;
+    font-size: 0.6rem;
   }
-  
-  .quick-actions {
-    top: 80px;
-    right: 10px;
-  }
-  
-  .quick-action-btn {
-    width: 40px;
-    height: 40px;
-  }
+
+
 }
 
 @media (max-width: 480px) {
-  .map-header {
-    top: 70px;
-    padding: 12px;
+  .top-header {
+    flex: 0 0 30px;
+    padding: 4px 6px;
   }
-  
-  .header-left h1 {
-    font-size: 1.2rem;
-  }
-  
-  .header-subtitle {
-    font-size: 0.8rem;
-  }
-  
-  .live-stats {
+
+  .nav-buttons {
     flex-direction: column;
-    gap: 6px;
+    gap: 2px;
   }
-  
-  .stat-item {
+
+  .nav-btn {
     width: 100%;
     justify-content: center;
+    padding: 3px 4px;
+    font-size: 0.6rem;
   }
-  
+
+  .middle-section {
+    padding: 6px 8px;
+  }
+
+  .map-header {
+    gap: 6px;
+  }
+
+  .header-content {
+    gap: 6px;
+  }
+
+  .header-left h1 {
+    font-size: 0.9rem;
+  }
+
+  .header-subtitle {
+    font-size: 0.6rem;
+  }
+
+  .live-stats {
+    gap: 3px;
+  }
+
+  .stat-item {
+    padding: 4px 6px;
+    min-width: 50px;
+  }
+
+  .stat-value {
+    font-size: 0.8rem;
+  }
+
+  .stat-label {
+    font-size: 0.55rem;
+  }
+
   .search-container {
-    gap: 8px;
+    gap: 6px;
   }
-  
+
   .action-buttons {
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
   }
-  
+
   .action-btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .filter-buttons {
     flex-direction: column;
-    gap: 6px;
+    gap: 3px;
   }
-  
+
   .filter-btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .suburb-select {
     width: 100%;
   }
-  
+
   .legend {
     flex-direction: column;
-    gap: 6px;
+    gap: 3px;
   }
-  
+
   .legend-item {
     justify-content: center;
   }
+
+
 }
 </style>
