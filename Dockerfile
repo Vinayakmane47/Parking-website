@@ -18,8 +18,8 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Expose port
-EXPOSE 5173
+# Expose port (Railway expects 8080)
+EXPOSE 8080
 
 # Start the application
-CMD ["npm", "run", "dev:all"]
+CMD ["npm", "run", "railway:start"]
