@@ -18,7 +18,8 @@
     "start": "npm run build && npm run start:backend",
     "dev:full": "concurrently \"npm run dev\" \"cd backend && npm run dev\"",
     "dev:all": "concurrently \"npm run dev\" \"cd backend && NODE_ENV=development PORT=3001 node src/server.js\"",
-    "build:all": "npm run build:frontend && npm run install:backend",
+    "build:all": "npm run install:backend && npm run build:frontend",
+    "start:production": "cd backend && NODE_ENV=production node src/server.js",
     "postinstall": "npm run install:backend"
   },
   "dependencies": {
